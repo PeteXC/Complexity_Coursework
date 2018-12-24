@@ -1,0 +1,2 @@
+GENE_SIZE = 8
+print((GENE_SIZE/2)-1)
