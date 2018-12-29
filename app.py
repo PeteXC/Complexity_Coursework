@@ -3,9 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-GENE_SIZE = 8
 
-individuals = []
+GENE_SIZE = 32
+
+population = []
+
+
+###############################################################################
+###     CLASSES     ###
 
 class Individual:
 
@@ -15,7 +20,7 @@ class Individual:
     R = 0
     fit = 0
 
-    #   Init constructor to initialise attributes
+###   Init constructor to initialise attributes
     def __init__(self):
         # n = 8
         self.G = self.calc_genes()
@@ -24,56 +29,65 @@ class Individual:
         self.R = self.calc_R()
         self.fit = self.calc_fit()
 
+###   Calculate the i value from the genes
     def calc_i(self):
         ones = 0
-        arr = self.G[:(GENE_SIZE/2)]
-        print (arr)
-        for x in range(len(arr)):
-            if (arr[x] == 1):
+        arr = self.G[:int(GENE_SIZE/2)]
+        for c in range(len(arr)):
+            if (arr[c] == 1):
                 ones += 1
         return ones
 
+###   Calculate the j value from the genes
     def calc_j(self):
         ones = 0
-        arr = self.G[(GENE_SIZE/2):]
-        print(arr)
-        for y in range(len(arr)):
-            if (arr[y] == 1):
+        arr = self.G[int(GENE_SIZE/2):]
+        for v in range(len(arr)):
+            if (arr[v] == 1):
                 ones += 1
         return ones
 
+###   Generate the Genes for this individual
     def calc_genes(self):
-        return np.random.randint(2, size=8)
+        return np.random.randint(2, size=GENE_SIZE)
 
+###   Generate R value to calculate the fitness
     def calc_R(self):
         return random.uniform(0.5,1)
 
+###   Calculate the fitness from the equation
     def calc_fit(self):
         return self.R*(2**self.i+2**self.j)
 
+###############################################################################
 
-# individuals = [Individual() for x in range(5)]
-a = Individual()
 
-print(vars(a))
+population = [Individual() for q in range(200)]
 
-# print(a.calc_genes())
+### Use this for printing out what the inviduals array is
+# print([Individual.G for Individual in population])
 
-# for x in individuals:
-#     attrs = vars(individuals[x])
-#     print (", ".join("%s: %s" % item for item in attrs.items()))
+#   Set up graphing
+fig = plt.figure()
+fl = fig.add_subplot(111,projection='3d')
+fl.set_aspect('equal')
+#ax.set_zlim3d(-1.5, 1.5)
 
-# fig = plt.figure()
-# ax = fig.add_subplot(111,projection='3d')
-# ax.set_aspect('equal')
-# ax.set_zlim3d(-1.5, 1.5)
+#   Create the X and Y axes based on i and j values of the population
+x0 = [Individual.i for Individual in population]
+y0 = [Individual.j for Individual in population]
+X0, Y0 = np.meshgrid(x0, y0)
 
-# x = np.arange(-10, 10, 0.5)
-# y = np.arange(-10, 10, 0.5)
-# x, y = np.meshgrid(x, y)a
-# r = (np.sin(x)+np.cos(y))/10
-# z = np.sin(x)*r
+#   Set up Z axis based on fitness values of the population
+r0 = (2**X0 + 2**Y0)
+Z0 = np.multiply(r0,[Individual.R for Individual in population])
 
-# ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap='gist_heat')
+print ((X0))
+print ((Y0))
+print ((Z0))
 
-# plt.show()
+fl.plot_surface(X0, Y0, Z0, cmap='gist_heat')
+fl.title("Fitness Landscape")
+
+
+plt.show()
