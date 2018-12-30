@@ -4,9 +4,11 @@ import numpy as np
 import random
 
 
-GENE_SIZE = 32
+GENE_SIZE = 30
 
 population = []
+
+xy_lim = 10
 
 
 ###############################################################################
@@ -61,33 +63,68 @@ class Individual:
 
 ###############################################################################
 
+###############################################################################
+###     Individuals Part        ###
 
-population = [Individual() for q in range(200)]
+# population = [Individual() for q in range(300)]
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
 
+###############################################################################
 #   Set up graphing
 fig = plt.figure()
-fl = fig.add_subplot(111,projection='3d')
-fl.set_aspect('equal')
-#ax.set_zlim3d(-1.5, 1.5)
+ax = fig.add_subplot(212,projection='3d')
+ax.set_aspect('equal')
 
-#   Create the X and Y axes based on i and j values of the population
-x0 = [Individual.i for Individual in population]
-y0 = [Individual.j for Individual in population]
+# #   Create the X and Y axes based on i and j values of the population
+# x0 = [Individual.i for Individual in population]
+# y0 = [Individual.j for Individual in population]
+x0 = np.arange(0,GENE_SIZE,1)
+y0 = np.arange(0,GENE_SIZE,1)
 X0, Y0 = np.meshgrid(x0, y0)
 
 #   Set up Z axis based on fitness values of the population
-r0 = (2**X0 + 2**Y0)
-Z0 = np.multiply(r0,[Individual.R for Individual in population])
+z0 = (2**X0 + 2**Y0)
+t0 = [random.uniform(0.5,1) for i in Y0]
+# t0 = np.random.rand(len(X0),len(X0))
+# for n in range(len(X0)):
+#         for m in range(len(X0)):
+#                 t0[m,n] = (t0[m,n]+1)/2
+Z0 = np.multiply(z0,t0)
 
+print (z0)
 print ((X0))
 print ((Y0))
 print ((Z0))
 
-fl.plot_surface(X0, Y0, Z0, cmap='gist_heat')
-fl.title("Fitness Landscape")
 
+# ax.set_zlim(-1, 1000000000)
+ax.plot_surface(X0, Y0, Z0, cmap='gist_heat')
+# ax.scatter(X0,Y0,Z0)
+ax.title.set_text("Fitness Landscape")
+
+###############################################################################
+
+ax1 = fig.add_subplot(232,projection='3d')
+ax1.set_aspect('equal')
+
+Z1 = np.multiply(z0,[1 for i in Y0])
+
+ax1.plot_surface(X0, Y0, Z1, cmap='gist_heat')
+
+###############################################################################
+
+ax2 = fig.add_subplot(252,projection='3d')
+ax2.set_aspect('equal')
+
+# for n in range(len(X0)):
+#         for m in range(len(X0)):
+#                 t0[m,n] = (t0[m,n]+1)/2
+
+Z2 = np.multiply(z0,t0)
+Z2 = np.divide(z0,t0)
+
+ax2.plot_surface(X0, Y0, Z2, cmap='gist_heat')
 
 plt.show()
