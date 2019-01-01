@@ -89,6 +89,7 @@ def mutate(par):
 ###     Individuals Part        ###
 
 population = [Individual() for q in range(400)]
+population2 = copy.deepcopy(population)
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
@@ -146,7 +147,6 @@ fig.suptitle("Fitness Landscape")
 #   Create the X and Y axes based on i and j values of the population
 x0 = np.arange(0, (GENE_SIZE/2)+1, 1)
 y0 = np.arange(0, (GENE_SIZE/2)+1, 1)
-print(x0,y0)
 X0, Y0 = np.meshgrid(x0, y0)
 
 #   Set up Z axis based on fitness values of the population
