@@ -181,10 +181,7 @@ while not(done):
         fittest_last = fittest
 
         # Check if the population has found an individual which has a high enough fitness to consider complete
-        if (MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS):
-                done = True
-
-        if (generation == 3000):
+        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation == 3000)):
                 done = True
 
 print(fittestX, fittestY, fittestZ)
