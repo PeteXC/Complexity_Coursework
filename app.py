@@ -8,6 +8,9 @@ import copy
 GENE_SIZE = 20
 MUTATION_RATE = 0.2
 
+m = ['FPTP', 'POP']
+mode = m[0]
+
 xy_lim = 10
 
 
@@ -219,11 +222,12 @@ while not(done):
         fittest_last = fittest
 
         # Check if the population has found an individual which has a high enough fitness to consider complete
-        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
-                done = True
-
-        # if (generation_0 == 1900):
-        #         done = True
+        if (mode == 'FPTP'):
+                if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
+                        done = True
+        else:
+                if (generation_0 == 1900):
+                        done = True
 
 print("------   HILLCLIMBER    ------")
 print(fittestX_0, fittestY_0, fittestZ_0)
@@ -310,7 +314,7 @@ while not(done):
         if (mutant_child.fit > population_1[loser].fit):
                 population_1[loser] = copy.deepcopy(mutant_child)
                 generation_1 += 1
-                print(generation_1)
+                # print(generation_1)
 
         # Now find the fittest in this generation
         fittest_1 = population_1[get_Fittest(population_1)]
@@ -318,17 +322,18 @@ while not(done):
                 fittestX_1.append(fittest_1.i)
                 fittestY_1.append(fittest_1.j)
                 fittestZ_1.append(fittest_1.fit)
-                # print(fittest_1.fit)
+                print(fittest_1.fit)
 
         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
         fittest_last_1 = fittest_1
 
         # Check if the population has found an individual which has a high enough fitness to consider complete
-        if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
-                done = True
-
-        # if (generation_1 == 1900):
-        #         done = True
+        if (mode == 'FPTP'):
+                if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
+                        done = True
+        else:
+                if (generation_1 == 1900):
+                        done = True
 
 print("------   CROSSOVER    ------")
 print(fittestX_1, fittestY_1, fittestZ_1)
