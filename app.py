@@ -105,7 +105,7 @@ R0 = np.random.rand(len(X0),len(X0))
 for n in range(len(X0)):
         for m in range(len(X0)):
                 R0[m,n] = (R0[m,n]+1)/2
-Z0 = np.multiply(z0,copy.deepcopy(R0))
+Z0 = np.multiply(copy.deepcopy(z0),copy.deepcopy(R0))
 
 
 ###############################################################################
@@ -149,6 +149,8 @@ done = False
 
 generation = 0
 
+MAX_FITNESS = int(max(map(max, Z0)))
+
 while not(done):
 
         # Select the parent from the population
@@ -160,10 +162,11 @@ while not(done):
         # print(R0[child.i, child.j])
         child.recalc(R0)
         # print(child.R)
+
         # Choose whether to put the child back into the population
         # If the child is put back into the population then this counts as a generation
         if (child.fit > parent.fit):
-                population[mutated_individual_index] = child
+                population[mutated_individual_index] = copy.deepcopy(child)
                 generation += 1
 
         # Now find the fittest in this generation
@@ -178,14 +181,14 @@ while not(done):
         fittest_last = fittest
 
         # Check if the population has found an individual which has a high enough fitness to consider complete
-        if ((2**(GENE_SIZE/2)+2**(GENE_SIZE/2))*0.9 < fittest.fit < 2**(GENE_SIZE/2)+2**(GENE_SIZE/2)):
+        if (MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS):
                 done = True
 
         if (generation == 3000):
                 done = True
 
 print(fittestX, fittestY, fittestZ)
-
+print("Peak Fitness Possible: ", MAX_FITNESS)
 print("Generation: ", generation)
 
 
