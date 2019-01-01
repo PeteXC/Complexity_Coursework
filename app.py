@@ -76,8 +76,8 @@ def get_Fittest(pop):
         list = [0] * len(pop)
         for x in range(len(pop)):
                 list[x] = pop[x].fit
-        # return [i for i, j in enumerate(list) if j == max(list)]
         return list.index(max(list))
+        # return [i for i, j in enumerate(list) if j == max(list)]
 
 def mutate(par):
         child = copy.deepcopy(par)
@@ -111,7 +111,7 @@ Z0 = np.multiply(copy.deepcopy(z0),copy.deepcopy(R0))
 ###############################################################################
 ###     Individuals Part        ###
 
-population = [Individual(R0) for q in range(400)]
+population = [Individual(copy.deepcopy(R0)) for q in range(400)]
 # print(vars(population[3]))
 population2 = copy.deepcopy(population)
 
@@ -129,8 +129,9 @@ pre_popX = [Individual.i for Individual in population]
 pre_popY = [Individual.j for Individual in population]
 pre_popZ = [Individual.fit for Individual in population]
 
-f2_Z0 = np.multiply(z0, copy.deepcopy(R0))
+f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
+f2_ax0.view_init(azim=-130)
 f2_ax0.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax0.title.set_text("Population (Pre)")
 
@@ -160,7 +161,7 @@ while not(done):
         # Mutate the parent to create a child and recalculate child values
         child = mutate(parent)
         # print(R0[child.i, child.j])
-        child.recalc(R0)
+        child.recalc(copy.deepcopy(R0))
         # print(child.R)
 
         # Choose whether to put the child back into the population
@@ -199,6 +200,7 @@ print("Generation: ", generation)
 ax = fig.add_subplot(133,projection='3d')
 ax.set_aspect('equal')
 
+ax.view_init(azim=-130)
 ax.plot_surface(X0, Y0, Z0, cmap='copper')
 ax.title.set_text("Fitness")
 
@@ -209,8 +211,9 @@ ax.title.set_text("Fitness")
 ax1 = fig.add_subplot(131,projection='3d')
 ax1.set_aspect('equal')
 
-Z1 = np.multiply(z0,[1 for i in Y0])
+Z1 = np.multiply(copy.deepcopy(z0),[1 for i in Y0])
 
+ax1.view_init(azim=-130)
 ax1.plot_surface(X0, Y0, Z1, cmap='copper')
 ax1.title.set_text("2^i + 2^j")
 
@@ -220,9 +223,10 @@ ax1.title.set_text("2^i + 2^j")
 ax2 = fig.add_subplot(132,projection='3d')
 ax2.set_aspect('equal')
 
-Z2 = np.multiply(z0, copy.deepcopy(R0))
-Z2 = np.divide(Z2, copy.copy(z0))
+Z2 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+Z2 = np.divide(Z2, copy.deepcopy(z0))
 
+ax2.view_init(azim=-130)
 ax2.plot_surface(X0, Y0, Z2, cmap='copper')
 ax2.title.set_text("R(i,j)")
 
@@ -236,8 +240,9 @@ popX = [Individual.i for Individual in population]
 popY = [Individual.j for Individual in population]
 popZ = [Individual.fit for Individual in population]
 
-f2_Z0 = np.multiply(z0, copy.deepcopy(R0))
+f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
+f2_ax1.view_init(azim=-130)
 f2_ax1.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax1.title.set_text("Population (Post)")
 
@@ -252,8 +257,9 @@ hX = fittestX
 hY = fittestY
 hZ = fittestZ
 
-f3_Z0 = np.multiply(z0, copy.deepcopy(R0))
+f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
+f2_ax2.view_init(azim=-130)
 f2_ax2.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax2.title.set_text("Fittest Tracker")
 
