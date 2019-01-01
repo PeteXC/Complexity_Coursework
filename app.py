@@ -6,8 +6,7 @@ import copy
 
 
 GENE_SIZE = 20
-
-population = []
+MUTATION_RATE = 0.2
 
 xy_lim = 10
 
@@ -79,11 +78,25 @@ def get_Fittest(pop):
         return list.index(max(list))
         # return [i for i, j in enumerate(list) if j == max(list)]
 
-def mutate(par):
+def mutate(par, R):
         child = copy.deepcopy(par)
         for i in range(len(par.G)):
-                if (random.uniform(0,1) < (0.1)):
+                if (random.uniform(0,1) < (MUTATION_RATE)):
                         child.G[i] = random.randint(0,1)
+        child.recalc(R)
+        return child
+
+def have_sex(par1, par2, R):
+        child = copy.deepcopy(par1)
+        point = random.randint(0, GENE_SIZE-1)
+
+        # Left side of point from parent 1
+        child.G[:point] = par1.G[:point]
+
+        # Right side of point from parent 2
+        child.G[point:] = par2.G[point:]
+
+        child.recalc(R)
         return child
 
 ###############################################################################
@@ -111,23 +124,23 @@ Z0 = np.multiply(copy.deepcopy(z0),copy.deepcopy(R0))
 ###############################################################################
 ###     Individuals Part        ###
 
-population = [Individual(copy.deepcopy(R0)) for q in range(400)]
-# print(vars(population[3]))
-population2 = copy.deepcopy(population)
+population_0 = [Individual(copy.deepcopy(R0)) for q in range(400)]
+population_1 = copy.deepcopy(population_0)
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
 
 ###############################################################################
-###     Population Plot (Pre)      ###
+###     Hillclimber - Population Plot (Pre)      ###
 fig2 = plt.figure()
+fig2.suptitle("Hillclimber")
 
 f2_ax0 = fig2.add_subplot(131,projection='3d')
 f2_ax0.set_aspect('equal')
 
-pre_popX = [Individual.i for Individual in population]
-pre_popY = [Individual.j for Individual in population]
-pre_popZ = [Individual.fit for Individual in population]
+pre_pop0_X = [Individual.i for Individual in population_0]
+pre_pop0_Y = [Individual.j for Individual in population_0]
+pre_pop0_Z = [Individual.fit for Individual in population_0]
 
 f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
@@ -135,59 +148,193 @@ f2_ax0.view_init(azim=-130)
 f2_ax0.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax0.title.set_text("Population (Pre)")
 
-f2_ax0.scatter(pre_popX, pre_popY, pre_popZ, marker='*')
+f2_ax0.scatter(pre_pop0_X, pre_pop0_Y, pre_pop0_Z, marker='*')
+
+
+###     Crossover - Population Plot (Pre)      ###
+fig3 = plt.figure()
+fig3.suptitle("Crossover")
+
+f3_ax0 = fig3.add_subplot(131,projection='3d')
+f3_ax0.set_aspect('equal')
+
+pre_pop1_X = [Individual.i for Individual in population_1]
+pre_pop1_Y = [Individual.j for Individual in population_1]
+pre_pop1_Z = [Individual.fit for Individual in population_1]
+
+f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+
+f3_ax0.view_init(azim=-130)
+f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+f3_ax0.title.set_text("Population (Pre)")
+
+f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
+
 
 ###############################################################################
-#############################       Main Loop       ####################################
+#############################       Main Loops       ##########################
 
-fittestX = []
-fittestY = []
-fittestZ = []
+###############################################################################
+###             Hillclimber             ###
 
-fittest_last = population[get_Fittest(population)]
+fittestX_0 = []
+fittestY_0 = []
+fittestZ_0 = []
+
+fittest_last = population_0[get_Fittest(population_0)]
 
 done = False
 
-generation = 0
+generation_0 = 0
 
 MAX_FITNESS = int(max(map(max, Z0)))
 
 while not(done):
 
         # Select the parent from the population
-        mutated_individual_index = random.randint(0,len(population)-1)
-        parent = population[mutated_individual_index]
+        mutated_individual_index = random.randint(0,len(population_0)-1)
+        parent = population_0[mutated_individual_index]
 
         # Mutate the parent to create a child and recalculate child values
-        child = mutate(parent)
+        child = mutate(parent, copy.deepcopy(R0))
         # print(R0[child.i, child.j])
-        child.recalc(copy.deepcopy(R0))
+        # child.recalc(copy.deepcopy(R0))
         # print(child.R)
 
         # Choose whether to put the child back into the population
         # If the child is put back into the population then this counts as a generation
         if (child.fit > parent.fit):
-                population[mutated_individual_index] = copy.deepcopy(child)
-                generation += 1
+                population_0[mutated_individual_index] = copy.deepcopy(child)
+                generation_0 += 1
 
         # Now find the fittest in this generation
-        fittest = population[get_Fittest(population)]
+        fittest = population_0[get_Fittest(population_0)]
         if (fittest != fittest_last):
-                fittestX.append(fittest.i)
-                fittestY.append(fittest.j)
-                fittestZ.append(fittest.fit)
+                fittestX_0.append(fittest.i)
+                fittestY_0.append(fittest.j)
+                fittestZ_0.append(fittest.fit)
                 print(fittest.fit)
 
         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
         fittest_last = fittest
 
         # Check if the population has found an individual which has a high enough fitness to consider complete
-        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation == 3000)):
+        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
                 done = True
 
-print(fittestX, fittestY, fittestZ)
+        # if (generation_0 == 1900):
+        #         done = True
+
+print("------   HILLCLIMBER    ------")
+print(fittestX_0, fittestY_0, fittestZ_0)
 print("Peak Fitness Possible: ", MAX_FITNESS)
-print("Generation: ", generation)
+print("Generation: ", generation_0)
+print("------   HILLCLIMBER    ------")
+
+###############################################################################
+###             Crossover             ###
+
+fittestX_1 = []
+fittestY_1 = []
+fittestZ_1 = []
+
+fittest_last_1 = population_1[get_Fittest(population_1)]
+
+done = False
+
+generation_1 = 0
+
+MAX_FITNESS = int(max(map(max, Z0)))
+
+while not(done):
+
+        select = False
+        select1 = False
+        select2 = False
+
+        # Make sure not to select the same parent
+        while not(select):
+
+                # Select two individuals to fight to be the first parent from the population
+                while not(select1):
+                        a = population_1[random.randint(0,len(population_1)-1)]
+                        b = population_1[random.randint(0,len(population_1)-1)]
+
+                        if (a != b):
+                                if (a.fit > b.fit):
+                                        parent1 = copy.deepcopy(a)
+                                else:
+                                        parent1 = copy.deepcopy(b)
+                                select1 = True
+
+                # Select two individuals to fight to be the second parent from the population
+                while not(select2):
+                        a = population_1[random.randint(0,len(population_1)-1)]
+                        b = population_1[random.randint(0,len(population_1)-1)]
+
+                        if (a != b):
+                                if (a.fit > b.fit):
+                                        parent2 = copy.deepcopy(a)
+                                else:
+                                        parent2 = copy.deepcopy(b)
+                                select2 = True
+
+                if (parent1 != parent2):
+                        select = True
+
+        # Perform crossover on the two parents to generate a child
+        child = have_sex(parent1, parent2, copy.deepcopy(R0))
+
+
+        # Mutate the child to create a mutated child to put back into population
+        mutant_child = mutate(child, copy.deepcopy(R0))
+
+        # Choose whether to put the child back into the population
+        # If the child is put back into the population then this counts as a generation
+
+        l_select = False
+
+        # Select two individuals to fight to see who gets replaced from the population
+        while not(l_select):
+                a = random.randint(0,len(population_1)-1)
+                b = random.randint(0,len(population_1)-1)
+
+                if (a != b):
+                        if (population_1[a].fit > population_1[b].fit):
+                                loser = a
+                        else:
+                                loser = b
+                        l_select = True
+
+        # Check if the loser can be replaced, and replace it
+        if (mutant_child.fit > population_1[loser].fit):
+                population_1[loser] = copy.deepcopy(mutant_child)
+                generation_1 += 1
+                print(generation_1)
+
+        # Now find the fittest in this generation
+        fittest_1 = population_1[get_Fittest(population_1)]
+        if (fittest_1 != fittest_last_1):
+                fittestX_1.append(fittest_1.i)
+                fittestY_1.append(fittest_1.j)
+                fittestZ_1.append(fittest_1.fit)
+                # print(fittest_1.fit)
+
+        # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
+        fittest_last_1 = fittest_1
+
+        # Check if the population has found an individual which has a high enough fitness to consider complete
+        if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
+                done = True
+
+        # if (generation_1 == 1900):
+        #         done = True
+
+print("------   CROSSOVER    ------")
+print(fittestX_1, fittestY_1, fittestZ_1)
+print("Peak Fitness Possible: ", MAX_FITNESS)
+print("Generation: ", generation_1)
+print("------   CROSSOVER    ------")
 
 
 ###############################################################################
@@ -217,6 +364,7 @@ ax1.view_init(azim=-130)
 ax1.plot_surface(X0, Y0, Z1, cmap='copper')
 ax1.title.set_text("2^i + 2^j")
 
+
 ###############################################################################
 ###     R(i,j)      ###
 
@@ -230,15 +378,16 @@ ax2.view_init(azim=-130)
 ax2.plot_surface(X0, Y0, Z2, cmap='copper')
 ax2.title.set_text("R(i,j)")
 
+
 ###############################################################################
-###     Population Plot (Post)        ###
+###     Hillclimber - Population Plot (Post)        ###
 
 f2_ax1 = fig2.add_subplot(132,projection='3d')
 f2_ax1.set_aspect('equal')
 
-popX = [Individual.i for Individual in population]
-popY = [Individual.j for Individual in population]
-popZ = [Individual.fit for Individual in population]
+popX_0 = [Individual.i for Individual in population_0]
+popY_0 = [Individual.j for Individual in population_0]
+popZ_0 = [Individual.fit for Individual in population_0]
 
 f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
@@ -246,16 +395,16 @@ f2_ax1.view_init(azim=-130)
 f2_ax1.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax1.title.set_text("Population (Post)")
 
-f2_ax1.scatter(popX,popY,popZ, marker='*')
+f2_ax1.scatter(popX_0, popY_0, popZ_0, marker='*')
 
 ###     Hillclimber Plot         ###
 
 f2_ax2 = fig2.add_subplot(133,projection='3d')
 f2_ax2.set_aspect('equal')
 
-hX = fittestX
-hY = fittestY
-hZ = fittestZ
+hX = fittestX_0
+hY = fittestY_0
+hZ = fittestZ_0
 
 f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
@@ -264,5 +413,42 @@ f2_ax2.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
 f2_ax2.title.set_text("Fittest Tracker")
 
 f2_ax2.scatter(hX,hY,hZ, marker='*')
+
+
+###############################################################################
+###     Crossover - Population Plot (Post)        ###
+
+f3_ax1 = fig3.add_subplot(132,projection='3d')
+f3_ax1.set_aspect('equal')
+
+popX_1 = [Individual.i for Individual in population_1]
+popY_1 = [Individual.j for Individual in population_1]
+popZ_1 = [Individual.fit for Individual in population_1]
+
+f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+
+f3_ax1.view_init(azim=-130)
+f3_ax1.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+f3_ax1.title.set_text("Population (Post)")
+
+f3_ax1.scatter(popX_1, popY_1, popZ_1, marker='*')
+
+###     Crossover Plot         ###
+
+f3_ax2 = fig3.add_subplot(133,projection='3d')
+f3_ax2.set_aspect('equal')
+
+hX_1 = fittestX_1
+hY_1 = fittestY_1
+hZ_1 = fittestZ_1
+
+f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+
+f3_ax2.view_init(azim=-130)
+f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+f3_ax2.title.set_text("Fittest Tracker")
+
+f3_ax2.scatter(hX_1, hY_1, hZ_1, marker='*')
+
 
 plt.show()
