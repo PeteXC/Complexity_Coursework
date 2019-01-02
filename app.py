@@ -6,6 +6,8 @@ import copy
 
 
 GENE_SIZE = 20
+POP_SIZE = 400
+DEME_SIZE = int(POP_SIZE/20)
 MUTATION_RATE = 0.2
 
 m = ['FPTP', 'POP']
@@ -127,8 +129,21 @@ Z0 = np.multiply(copy.deepcopy(z0),copy.deepcopy(R0))
 ###############################################################################
 ###     Individuals Part        ###
 
-population_0 = [Individual(copy.deepcopy(R0)) for q in range(400)]
+population_0 = [Individual(copy.deepcopy(R0)) for q in range(POP_SIZE)]
 population_1 = copy.deepcopy(population_0)
+
+w, h = int(POP_SIZE/DEME_SIZE), DEME_SIZE
+demes_0 = [[0 for x in range(w)] for y in range(h)]
+
+for ii in range(len(demes_0)):
+        for jj in range(len(demes_0[ii])):
+                demes_0[ii][jj] = copy.deepcopy(population_0[ii*DEME_SIZE+jj])
+
+deme = [Individual(copy.deepcopy(R0)) for q in range(DEME_SIZE)]
+
+population_0 = [deme for i in range()]
+population_1 = copy.deepcopy(population_0)
+
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
@@ -168,178 +183,186 @@ pre_pop1_Z = [Individual.fit for Individual in population_1]
 f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
 f3_ax0.view_init(azim=-130)
-f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
 f3_ax0.title.set_text("Population (Pre)")
 
 f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
 
 
 ###############################################################################
-#############################       Main Loops       ##########################
+#############################       Main Loop       ###########################
+
+
+###############################################################################
+###             Genetic Algorithms      ###
 
 ###############################################################################
 ###             Hillclimber             ###
 
-fittestX_0 = []
-fittestY_0 = []
-fittestZ_0 = []
+def hillclimber_GA(population):
 
-fittest_last = population_0[get_Fittest(population_0)]
+        fittestX_0 = [[] for i in population]
+        fittestY_0 = [[] for i in population]
+        fittestZ_0 = [[] for i in population]
 
-done = False
+        fittest_last = population[get_Fittest(population)]
 
-generation_0 = 0
+        done = False
 
-MAX_FITNESS = int(max(map(max, Z0)))
+        generation_0 = 0
 
-while not(done):
+        MAX_FITNESS = int(max(map(max, Z0)))
 
-        # Select the parent from the population
-        mutated_individual_index = random.randint(0,len(population_0)-1)
-        parent = population_0[mutated_individual_index]
+        while not(done):
 
-        # Mutate the parent to create a child and recalculate child values
-        child = mutate(parent, copy.deepcopy(R0))
-        # print(R0[child.i, child.j])
-        # child.recalc(copy.deepcopy(R0))
-        # print(child.R)
+                # Select the parent from the population
+                mutated_individual_index = random.randint(0,len(population)-1)
+                parent = population[mutated_individual_index]
 
-        # Choose whether to put the child back into the population
-        # If the child is put back into the population then this counts as a generation
-        if (child.fit > parent.fit):
-                population_0[mutated_individual_index] = copy.deepcopy(child)
-                generation_0 += 1
+                # Mutate the parent to create a child and recalculate child values
+                child = mutate(parent, copy.deepcopy(R0))
+                # print(R0[child.i, child.j])
+                # child.recalc(copy.deepcopy(R0))
+                # print(child.R)
 
-        # Now find the fittest in this generation
-        fittest = population_0[get_Fittest(population_0)]
-        if (fittest != fittest_last):
-                fittestX_0.append(fittest.i)
-                fittestY_0.append(fittest.j)
-                fittestZ_0.append(fittest.fit)
-                print(fittest.fit)
+                # Choose whether to put the child back into the population
+                # If the child is put back into the population then this counts as a generation
+                if (child.fit > parent.fit):
+                        population[mutated_individual_index] = copy.deepcopy(child)
+                        generation_0 += 1
 
-        # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
-        fittest_last = fittest
+                # Now find the fittest in this generation
+                fittest = population[get_Fittest(population)]
+                if (fittest != fittest_last):
+                        fittestX_0.append(fittest.i)
+                        fittestY_0.append(fittest.j)
+                        fittestZ_0.append(fittest.fit)
+                        print(fittest.fit)
 
-        # Check if the population has found an individual which has a high enough fitness to consider complete
-        if (mode == 'FPTP'):
-                if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
-                        done = True
-        else:
-                if (generation_0 == 1900):
-                        done = True
+                # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
+                fittest_last = fittest
 
-print("------   HILLCLIMBER    ------")
-print(fittestX_0, fittestY_0, fittestZ_0)
-print("Peak Fitness Possible: ", MAX_FITNESS)
-print("Generation: ", generation_0)
-print("------   HILLCLIMBER    ------")
+                # Check if the population has found an individual which has a high enough fitness to consider complete
+                if (mode == 'FPTP'):
+                        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
+                                done = True
+                else:
+                        if (generation_0 == 1900):
+                                done = True
+
+        print("------   HILLCLIMBER    ------")
+        print(fittestX_0, fittestY_0, fittestZ_0)
+        print("Peak Fitness Possible: ", MAX_FITNESS)
+        print("Generation: ", generation_0)
+        print("------   HILLCLIMBER    ------")
 
 ###############################################################################
 ###             Crossover             ###
 
-fittestX_1 = []
-fittestY_1 = []
-fittestZ_1 = []
+def crossover_GA(population_1):
 
-fittest_last_1 = population_1[get_Fittest(population_1)]
+        fittestX_1 = []
+        fittestY_1 = []
+        fittestZ_1 = []
 
-done = False
+        fittest_last_1 = population_1[get_Fittest(population_1)]
 
-generation_1 = 0
+        done = False
 
-MAX_FITNESS = int(max(map(max, Z0)))
+        generation_1 = 0
 
-while not(done):
+        MAX_FITNESS = int(max(map(max, Z0)))
 
-        select = False
-        select1 = False
-        select2 = False
+        while not(done):
 
-        # Make sure not to select the same parent
-        while not(select):
+                select = False
+                select1 = False
+                select2 = False
 
-                # Select two individuals to fight to be the first parent from the population
-                while not(select1):
-                        a = population_1[random.randint(0,len(population_1)-1)]
-                        b = population_1[random.randint(0,len(population_1)-1)]
+                # Make sure not to select the same parent
+                while not(select):
+
+                        # Select two individuals to fight to be the first parent from the population
+                        while not(select1):
+                                a = population_1[random.randint(0,len(population_1)-1)]
+                                b = population_1[random.randint(0,len(population_1)-1)]
+
+                                if (a != b):
+                                        if (a.fit > b.fit):
+                                                parent1 = copy.deepcopy(a)
+                                        else:
+                                                parent1 = copy.deepcopy(b)
+                                        select1 = True
+
+                        # Select two individuals to fight to be the second parent from the population
+                        while not(select2):
+                                a = population_1[random.randint(0,len(population_1)-1)]
+                                b = population_1[random.randint(0,len(population_1)-1)]
+
+                                if (a != b):
+                                        if (a.fit > b.fit):
+                                                parent2 = copy.deepcopy(a)
+                                        else:
+                                                parent2 = copy.deepcopy(b)
+                                        select2 = True
+
+                        if (parent1 != parent2):
+                                select = True
+
+                # Perform crossover on the two parents to generate a child
+                child = have_sex(parent1, parent2, copy.deepcopy(R0))
+
+
+                # Mutate the child to create a mutated child to put back into population
+                mutant_child = mutate(child, copy.deepcopy(R0))
+
+                # Choose whether to put the child back into the population
+                # If the child is put back into the population then this counts as a generation
+
+                l_select = False
+
+                # Select two individuals to fight to see who gets replaced from the population
+                while not(l_select):
+                        a = random.randint(0,len(population_1)-1)
+                        b = random.randint(0,len(population_1)-1)
 
                         if (a != b):
-                                if (a.fit > b.fit):
-                                        parent1 = copy.deepcopy(a)
+                                if (population_1[a].fit > population_1[b].fit):
+                                        loser = a
                                 else:
-                                        parent1 = copy.deepcopy(b)
-                                select1 = True
+                                        loser = b
+                                l_select = True
 
-                # Select two individuals to fight to be the second parent from the population
-                while not(select2):
-                        a = population_1[random.randint(0,len(population_1)-1)]
-                        b = population_1[random.randint(0,len(population_1)-1)]
+                # Check if the loser can be replaced, and replace it
+                if (mutant_child.fit > population_1[loser].fit):
+                        population_1[loser] = copy.deepcopy(mutant_child)
+                        generation_1 += 1
+                        # print(generation_1)
 
-                        if (a != b):
-                                if (a.fit > b.fit):
-                                        parent2 = copy.deepcopy(a)
-                                else:
-                                        parent2 = copy.deepcopy(b)
-                                select2 = True
+                # Now find the fittest in this generation
+                fittest_1 = population_1[get_Fittest(population_1)]
+                if (fittest_1 != fittest_last_1):
+                        fittestX_1.append(fittest_1.i)
+                        fittestY_1.append(fittest_1.j)
+                        fittestZ_1.append(fittest_1.fit)
+                        print(fittest_1.fit)
 
-                if (parent1 != parent2):
-                        select = True
+                # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
+                fittest_last_1 = fittest_1
 
-        # Perform crossover on the two parents to generate a child
-        child = have_sex(parent1, parent2, copy.deepcopy(R0))
+                # Check if the population has found an individual which has a high enough fitness to consider complete
+                if (mode == 'FPTP'):
+                        if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
+                                done = True
+                else:
+                        if (generation_1 == 1900):
+                                done = True
 
-
-        # Mutate the child to create a mutated child to put back into population
-        mutant_child = mutate(child, copy.deepcopy(R0))
-
-        # Choose whether to put the child back into the population
-        # If the child is put back into the population then this counts as a generation
-
-        l_select = False
-
-        # Select two individuals to fight to see who gets replaced from the population
-        while not(l_select):
-                a = random.randint(0,len(population_1)-1)
-                b = random.randint(0,len(population_1)-1)
-
-                if (a != b):
-                        if (population_1[a].fit > population_1[b].fit):
-                                loser = a
-                        else:
-                                loser = b
-                        l_select = True
-
-        # Check if the loser can be replaced, and replace it
-        if (mutant_child.fit > population_1[loser].fit):
-                population_1[loser] = copy.deepcopy(mutant_child)
-                generation_1 += 1
-                # print(generation_1)
-
-        # Now find the fittest in this generation
-        fittest_1 = population_1[get_Fittest(population_1)]
-        if (fittest_1 != fittest_last_1):
-                fittestX_1.append(fittest_1.i)
-                fittestY_1.append(fittest_1.j)
-                fittestZ_1.append(fittest_1.fit)
-                print(fittest_1.fit)
-
-        # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
-        fittest_last_1 = fittest_1
-
-        # Check if the population has found an individual which has a high enough fitness to consider complete
-        if (mode == 'FPTP'):
-                if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
-                        done = True
-        else:
-                if (generation_1 == 1900):
-                        done = True
-
-print("------   CROSSOVER    ------")
-print(fittestX_1, fittestY_1, fittestZ_1)
-print("Peak Fitness Possible: ", MAX_FITNESS)
-print("Generation: ", generation_1)
-print("------   CROSSOVER    ------")
+        print("------   CROSSOVER    ------")
+        print(fittestX_1, fittestY_1, fittestZ_1)
+        print("Peak Fitness Possible: ", MAX_FITNESS)
+        print("Generation: ", generation_1)
+        print("------   CROSSOVER    ------")
 
 
 ###############################################################################
@@ -353,7 +376,7 @@ ax = fig.add_subplot(133,projection='3d')
 ax.set_aspect('equal')
 
 ax.view_init(azim=-130)
-ax.plot_surface(X0, Y0, Z0, cmap='copper')
+ax.plot_surface(X0, Y0, Z0, cmap='copper', rstride=1, cstride=1)
 ax.title.set_text("Fitness")
 
 
@@ -450,7 +473,8 @@ hZ_1 = fittestZ_1
 f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
 f3_ax2.view_init(azim=-130)
-f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
+print(len(X0), len(X0[0]))
 f3_ax2.title.set_text("Fittest Tracker")
 
 f3_ax2.scatter(hX_1, hY_1, hZ_1, marker='*')
