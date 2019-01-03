@@ -79,7 +79,7 @@ class Individual():
 def get_Fittest(pop):
         list = [0] * len(pop)
         for x in range(len(pop)):
-                list[x] = pop[x].fit
+                list[x] = copy.copy(pop[x].fit)
         return list.index(max(list))
         # return [i for i, j in enumerate(list) if j == max(list)]
 
@@ -135,7 +135,8 @@ def plot_Fittest(ax, pop, arr):
 
         ax.title.set_text("Fittest Tracker")
 
-        ax.scatter(arr[0], arr[1], arr[2], marker='*')
+        for i in range(len(pop)):
+                ax.scatter(arr[0][i], arr[1][i], arr[2][i], marker='*')
 
         return 0
 
@@ -235,22 +236,23 @@ print(vars(population_0[0][0]))
 
 def hillclimber_GA(population):
 
-        fittestX = []
-        fittestY = []
-        fittestZ = []
-        fittest_XYZ = [fittestX, fittestY, fittestZ]
-        fittest_arr = [fittest_XYZ for ee in range(len(population))]
+        fittestX = [[] for aa in range(len(population))]
+        fittestY = [[] for bb in range(len(population))]
+        fittestZ = [[] for cc in range(len(population))]
+        fittest_XYZ = [[], [], []]
+        fittest_arr = [[],[],[]]
+        # print(fittest_arr)
 
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
-        fittest_last = [population[i][get_Fittest(population[i])] for i in range(len(population))]
+        fittest_last = [population[i][0] for i in range(len(population))]
 
-        # print(fittest_last, fittest)
+        (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
 
         done = False
 
         generation_0 = 0
 
-        MAX_FITNESS = int(max(map(max, Z0)))
+        MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
 
         while not(done):
 
@@ -261,7 +263,7 @@ def hillclimber_GA(population):
                         parent = population[p][mutated_individual_index]
 
                         # Mutate the parent to create a child and recalculate child values
-                        child = mutate(parent, copy.deepcopy(R0))
+                        child = mutate(copy.deepcopy(parent), copy.deepcopy(R0))
                         # print(R0[child.i, child.j])
                         # child.recalc(copy.deepcopy(R0))
                         # print(child.R)
@@ -274,25 +276,37 @@ def hillclimber_GA(population):
 
                         # Now find the fittest in this generation
                         fittest[p] = population[p][get_Fittest(population[p])]
+
                         if (fittest[p] != fittest_last[p]):
-                                fittest_arr[p][0].append(fittest[p].i)
-                                fittest_arr[p][1].append(fittest[p].j)
-                                fittest_arr[p][2].append(fittest[p].fit)
-                                print(fittest[p].fit)
+                                fittestX[p].append(fittest[p].i)
+                                fittestY[p].append(fittest[p].j)
+                                fittestZ[p].append(fittest[p].fit)
+                                # if (p == 0):
+                                #         print(fittest_arr[p][2])
+                                #         print(fittest[p].fit, "\n")
 
                         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
                         fittest_last[p] = fittest[p]
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
-                                if ((MAX_FITNESS * 0.95 < fittest[p].fit <= MAX_FITNESS) or (generation_0 == 3000)):
+                                if ((fittest[p].fit == MAX_FITNESS) or (generation_0 == 3000)):
                                         done = True
                         else:
                                 if (generation_0 == 1900):
                                         done = True
 
+                # for gg in range(len(population[0])):
+                #         print(population[0][gg].fit, " ", end="", flush=True)
+
+                # print("\n", fittest[0].fit, "\n")
+
+        fittest_arr = [fittestX, fittestY, fittestZ]
+
         print("------   HILLCLIMBER    ------")
-        print(fittest_arr)
+        # print(fittestX)
+        # print(fittestY)
+        print(fittestZ)
         print("Peak Fitness Possible: ", MAX_FITNESS)
         print("Generation: ", generation_0)
         print("------   HILLCLIMBER    ------")
@@ -429,13 +443,13 @@ fittest_arr = hillclimber_GA(population_0)
 
 # Plot the post-evolution population sub-figure
 plot_Surface(f2_ax1, copy.deepcopy(landscape_arr))
-for rr in range(len(population_0)):
-        plot_Pop(f2_ax1, population_0[rr], "Hillclimber (Post)")
+for tt in range(len(population_0)):
+        plot_Pop(f2_ax1, population_0[tt], "Hillclimber (Post)")
 
 # Plot the post-evolution fittest trace
 plot_Surface(f2_ax2, copy.deepcopy(landscape_arr))
-for rr in range(len(population_0)):
-        plot_Fittest(f2_ax2, population_0[rr], copy.deepcopy(fittest_arr[rr]))
+for yy in range(len(population_0)):
+        plot_Fittest(f2_ax2, population_0[yy], copy.deepcopy(fittest_arr))
 
 ###############################################################################
 ###     Plots       ###
