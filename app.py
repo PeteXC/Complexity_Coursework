@@ -91,7 +91,7 @@ def mutate(par, R):
         child.recalc(R)
         return child
 
-def have_sex(par1, par2, R):
+def have_Sex(par1, par2, R):
         child = copy.deepcopy(par1)
         point = random.randint(0, GENE_SIZE-1)
 
@@ -103,6 +103,42 @@ def have_sex(par1, par2, R):
 
         child.recalc(R)
         return child
+
+def make_Deme(ran):
+        return [Individual(ran) for q in range(DEME_SIZE)]
+
+def plot_Surface(ax, arr):
+
+        ax.view_init(azim=-130)
+        ax.plot_surface(arr[0], arr[1], arr[2], cmap='copper', alpha=0.7)
+
+def plot_Pop(ax, pop, text):
+        ax.set_aspect('equal')
+
+        X = [Individual.i for Individual in pop]
+        Y = [Individual.j for Individual in pop]
+        Z = [Individual.fit for Individual in pop]
+
+        # f_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+
+        # ax.view_init(azim=-130)
+        # ax.plot_surface(arr[0], arr[1], arr[2], cmap='copper', alpha=0.7)
+        ax.title.set_text(text)
+
+        ax.scatter(X, Y, Z, marker='*')
+
+        return 0
+
+def plot_Fittest(ax, pop, arr):
+
+        ax.set_aspect('equal')
+
+        ax.title.set_text("Fittest Tracker")
+
+        ax.scatter(arr[0], arr[1], arr[2], marker='*')
+
+        return 0
+
 
 ###############################################################################
 ###     SET UP FITNESS LANDSCAPE        ###
@@ -125,72 +161,70 @@ for n in range(len(X0)):
                 R0[m,n] = (R0[m,n]+1)/2
 Z0 = np.multiply(copy.deepcopy(z0),copy.deepcopy(R0))
 
+landscape_arr = [X0, Y0, Z0]
 
 ###############################################################################
 ###     Individuals Part        ###
 
-population_0 = [Individual(copy.deepcopy(R0)) for q in range(POP_SIZE)]
+# population_0 = [Individual(copy.deepcopy(R0)) for q in range(POP_SIZE)]
+# population_1 = copy.deepcopy(population_0)
+
+# w, h = int(POP_SIZE/DEME_SIZE), DEME_SIZE
+# demes_0 = [[0 for x in range(w)] for y in range(h)]
+
+# for ii in range(len(demes_0)):
+#         for jj in range(len(demes_0[ii])):
+#                 demes_0[ii][jj] = copy.deepcopy(population_0[ii*DEME_SIZE+jj])
+
+# deme = [Individual(copy.deepcopy(R0)) for q in range(DEME_SIZE)]
+
+population_0 = [make_Deme(copy.deepcopy(R0)) for i in range(int(POP_SIZE/DEME_SIZE))]
 population_1 = copy.deepcopy(population_0)
 
-w, h = int(POP_SIZE/DEME_SIZE), DEME_SIZE
-demes_0 = [[0 for x in range(w)] for y in range(h)]
-
-for ii in range(len(demes_0)):
-        for jj in range(len(demes_0[ii])):
-                demes_0[ii][jj] = copy.deepcopy(population_0[ii*DEME_SIZE+jj])
-
-deme = [Individual(copy.deepcopy(R0)) for q in range(DEME_SIZE)]
-
-population_0 = [deme for i in range()]
-population_1 = copy.deepcopy(population_0)
-
+print(vars(population_0[0][0]))
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
 
 ###############################################################################
 ###     Hillclimber - Population Plot (Pre)      ###
-fig2 = plt.figure()
-fig2.suptitle("Hillclimber")
+# fig2 = plt.figure()
+# fig2.suptitle("Hillclimber")
 
-f2_ax0 = fig2.add_subplot(131,projection='3d')
-f2_ax0.set_aspect('equal')
+# f2_ax0 = fig2.add_subplot(131,projection='3d')
+# f2_ax0.set_aspect('equal')
 
-pre_pop0_X = [Individual.i for Individual in population_0]
-pre_pop0_Y = [Individual.j for Individual in population_0]
-pre_pop0_Z = [Individual.fit for Individual in population_0]
+# pre_pop0_X = [Individual.i for Individual in population_0]
+# pre_pop0_Y = [Individual.j for Individual in population_0]
+# pre_pop0_Z = [Individual.fit for Individual in population_0]
 
-f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f2_ax0.view_init(azim=-130)
-f2_ax0.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-f2_ax0.title.set_text("Population (Pre)")
+# f2_ax0.view_init(azim=-130)
+# f2_ax0.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
+# f2_ax0.title.set_text("Population (Pre)")
 
-f2_ax0.scatter(pre_pop0_X, pre_pop0_Y, pre_pop0_Z, marker='*')
+# f2_ax0.scatter(pre_pop0_X, pre_pop0_Y, pre_pop0_Z, marker='*')
 
 
 ###     Crossover - Population Plot (Pre)      ###
-fig3 = plt.figure()
-fig3.suptitle("Crossover")
+# fig3 = plt.figure()
+# fig3.suptitle("Crossover")
 
-f3_ax0 = fig3.add_subplot(131,projection='3d')
-f3_ax0.set_aspect('equal')
+# f3_ax0 = fig3.add_subplot(131,projection='3d')
+# f3_ax0.set_aspect('equal')
 
-pre_pop1_X = [Individual.i for Individual in population_1]
-pre_pop1_Y = [Individual.j for Individual in population_1]
-pre_pop1_Z = [Individual.fit for Individual in population_1]
+# pre_pop1_X = [Individual.i for Individual in population_1]
+# pre_pop1_Y = [Individual.j for Individual in population_1]
+# pre_pop1_Z = [Individual.fit for Individual in population_1]
 
-f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f3_ax0.view_init(azim=-130)
-f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
-f3_ax0.title.set_text("Population (Pre)")
+# f3_ax0.view_init(azim=-130)
+# f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
+# f3_ax0.title.set_text("Population (Pre)")
 
-f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
-
-
-###############################################################################
-#############################       Main Loop       ###########################
+# f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
 
 
 ###############################################################################
@@ -201,11 +235,16 @@ f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
 
 def hillclimber_GA(population):
 
-        fittestX_0 = [[] for i in population]
-        fittestY_0 = [[] for i in population]
-        fittestZ_0 = [[] for i in population]
+        fittestX = []
+        fittestY = []
+        fittestZ = []
+        fittest_XYZ = [fittestX, fittestY, fittestZ]
+        fittest_arr = [fittest_XYZ for ee in range(len(population))]
 
-        fittest_last = population[get_Fittest(population)]
+        fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
+        fittest_last = [population[i][get_Fittest(population[i])] for i in range(len(population))]
+
+        # print(fittest_last, fittest)
 
         done = False
 
@@ -215,46 +254,51 @@ def hillclimber_GA(population):
 
         while not(done):
 
-                # Select the parent from the population
-                mutated_individual_index = random.randint(0,len(population)-1)
-                parent = population[mutated_individual_index]
+                for p in range(len(population)):
 
-                # Mutate the parent to create a child and recalculate child values
-                child = mutate(parent, copy.deepcopy(R0))
-                # print(R0[child.i, child.j])
-                # child.recalc(copy.deepcopy(R0))
-                # print(child.R)
+                        # Select the parent from the population
+                        mutated_individual_index = random.randint(0,len(population[p])-1)
+                        parent = population[p][mutated_individual_index]
 
-                # Choose whether to put the child back into the population
-                # If the child is put back into the population then this counts as a generation
-                if (child.fit > parent.fit):
-                        population[mutated_individual_index] = copy.deepcopy(child)
-                        generation_0 += 1
+                        # Mutate the parent to create a child and recalculate child values
+                        child = mutate(parent, copy.deepcopy(R0))
+                        # print(R0[child.i, child.j])
+                        # child.recalc(copy.deepcopy(R0))
+                        # print(child.R)
 
-                # Now find the fittest in this generation
-                fittest = population[get_Fittest(population)]
-                if (fittest != fittest_last):
-                        fittestX_0.append(fittest.i)
-                        fittestY_0.append(fittest.j)
-                        fittestZ_0.append(fittest.fit)
-                        print(fittest.fit)
+                        # Choose whether to put the child back into the population
+                        # If the child is put back into the population then this counts as a generation
+                        if (child.fit > parent.fit):
+                                population[p][mutated_individual_index] = copy.deepcopy(child)
+                                generation_0 += 1
 
-                # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
-                fittest_last = fittest
+                        # Now find the fittest in this generation
+                        fittest[p] = population[p][get_Fittest(population[p])]
+                        if (fittest[p] != fittest_last[p]):
+                                fittest_arr[p][0].append(fittest[p].i)
+                                fittest_arr[p][1].append(fittest[p].j)
+                                fittest_arr[p][2].append(fittest[p].fit)
+                                print(fittest[p].fit)
 
-                # Check if the population has found an individual which has a high enough fitness to consider complete
-                if (mode == 'FPTP'):
-                        if ((MAX_FITNESS * 0.95 < fittest.fit <= MAX_FITNESS) or (generation_0 == 3000)):
-                                done = True
-                else:
-                        if (generation_0 == 1900):
-                                done = True
+                        # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
+                        fittest_last[p] = fittest[p]
+
+                        # Check if the population has found an individual which has a high enough fitness to consider complete
+                        if (mode == 'FPTP'):
+                                if ((MAX_FITNESS * 0.95 < fittest[p].fit <= MAX_FITNESS) or (generation_0 == 3000)):
+                                        done = True
+                        else:
+                                if (generation_0 == 1900):
+                                        done = True
 
         print("------   HILLCLIMBER    ------")
-        print(fittestX_0, fittestY_0, fittestZ_0)
+        print(fittest_arr)
         print("Peak Fitness Possible: ", MAX_FITNESS)
         print("Generation: ", generation_0)
         print("------   HILLCLIMBER    ------")
+
+
+        return fittest_arr
 
 ###############################################################################
 ###             Crossover             ###
@@ -310,7 +354,7 @@ def crossover_GA(population_1):
                                 select = True
 
                 # Perform crossover on the two parents to generate a child
-                child = have_sex(parent1, parent2, copy.deepcopy(R0))
+                child = have_Sex(parent1, parent2, copy.deepcopy(R0))
 
 
                 # Mutate the child to create a mutated child to put back into population
@@ -366,6 +410,34 @@ def crossover_GA(population_1):
 
 
 ###############################################################################
+#############################       Main Loop       ###########################
+
+fig2 = plt.figure()
+fig2.suptitle("Hillclimber")
+
+f2_ax0 = fig2.add_subplot(131,projection='3d')
+f2_ax1 = fig2.add_subplot(132,projection='3d')
+f2_ax2 = fig2.add_subplot(133,projection='3d')
+
+# Plot the pre-evolution population sub-figure
+plot_Surface(f2_ax0, copy.deepcopy(landscape_arr))
+for rr in range(len(population_0)):
+        plot_Pop(f2_ax0, population_0[rr], "Hillclimber (Pre)")
+
+# Do the GA on the population
+fittest_arr = hillclimber_GA(population_0)
+
+# Plot the post-evolution population sub-figure
+plot_Surface(f2_ax1, copy.deepcopy(landscape_arr))
+for rr in range(len(population_0)):
+        plot_Pop(f2_ax1, population_0[rr], "Hillclimber (Post)")
+
+# Plot the post-evolution fittest trace
+plot_Surface(f2_ax2, copy.deepcopy(landscape_arr))
+for rr in range(len(population_0)):
+        plot_Fittest(f2_ax2, population_0[rr], copy.deepcopy(fittest_arr[rr]))
+
+###############################################################################
 ###     Plots       ###
 ###############################################################################
 
@@ -407,77 +479,77 @@ ax2.plot_surface(X0, Y0, Z2, cmap='copper')
 ax2.title.set_text("R(i,j)")
 
 
-###############################################################################
-###     Hillclimber - Population Plot (Post)        ###
+# ###############################################################################
+# ###     Hillclimber - Population Plot (Post)        ###
 
-f2_ax1 = fig2.add_subplot(132,projection='3d')
-f2_ax1.set_aspect('equal')
+# f2_ax1 = fig2.add_subplot(132,projection='3d')
+# f2_ax1.set_aspect('equal')
 
-popX_0 = [Individual.i for Individual in population_0]
-popY_0 = [Individual.j for Individual in population_0]
-popZ_0 = [Individual.fit for Individual in population_0]
+# popX_0 = [Individual.i for Individual in population_0]
+# popY_0 = [Individual.j for Individual in population_0]
+# popZ_0 = [Individual.fit for Individual in population_0]
 
-f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f2_ax1.view_init(azim=-130)
-f2_ax1.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-f2_ax1.title.set_text("Population (Post)")
+# f2_ax1.view_init(azim=-130)
+# f2_ax1.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
+# f2_ax1.title.set_text("Population (Post)")
 
-f2_ax1.scatter(popX_0, popY_0, popZ_0, marker='*')
+# f2_ax1.scatter(popX_0, popY_0, popZ_0, marker='*')
 
-###     Hillclimber Plot         ###
+# ###     Hillclimber Plot         ###
 
-f2_ax2 = fig2.add_subplot(133,projection='3d')
-f2_ax2.set_aspect('equal')
+# f2_ax2 = fig2.add_subplot(133,projection='3d')
+# f2_ax2.set_aspect('equal')
 
-hX = fittestX_0
-hY = fittestY_0
-hZ = fittestZ_0
+# hX = fittestX_0
+# hY = fittestY_0
+# hZ = fittestZ_0
 
-f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f2_ax2.view_init(azim=-130)
-f2_ax2.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-f2_ax2.title.set_text("Fittest Tracker")
+# f2_ax2.view_init(azim=-130)
+# f2_ax2.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
+# f2_ax2.title.set_text("Fittest Tracker")
 
-f2_ax2.scatter(hX,hY,hZ, marker='*')
+# f2_ax2.scatter(hX,hY,hZ, marker='*')
 
 
-###############################################################################
-###     Crossover - Population Plot (Post)        ###
+# ###############################################################################
+# ###     Crossover - Population Plot (Post)        ###
 
-f3_ax1 = fig3.add_subplot(132,projection='3d')
-f3_ax1.set_aspect('equal')
+# f3_ax1 = fig3.add_subplot(132,projection='3d')
+# f3_ax1.set_aspect('equal')
 
-popX_1 = [Individual.i for Individual in population_1]
-popY_1 = [Individual.j for Individual in population_1]
-popZ_1 = [Individual.fit for Individual in population_1]
+# popX_1 = [Individual.i for Individual in population_1]
+# popY_1 = [Individual.j for Individual in population_1]
+# popZ_1 = [Individual.fit for Individual in population_1]
 
-f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f3_ax1.view_init(azim=-130)
-f3_ax1.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
-f3_ax1.title.set_text("Population (Post)")
+# f3_ax1.view_init(azim=-130)
+# f3_ax1.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
+# f3_ax1.title.set_text("Population (Post)")
 
-f3_ax1.scatter(popX_1, popY_1, popZ_1, marker='*')
+# f3_ax1.scatter(popX_1, popY_1, popZ_1, marker='*')
 
-###     Crossover Plot         ###
+# ###     Crossover Plot         ###
 
-f3_ax2 = fig3.add_subplot(133,projection='3d')
-f3_ax2.set_aspect('equal')
+# f3_ax2 = fig3.add_subplot(133,projection='3d')
+# f3_ax2.set_aspect('equal')
 
-hX_1 = fittestX_1
-hY_1 = fittestY_1
-hZ_1 = fittestZ_1
+# hX_1 = fittestX_1
+# hY_1 = fittestY_1
+# hZ_1 = fittestZ_1
 
-f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
+# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
 
-f3_ax2.view_init(azim=-130)
-f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
-print(len(X0), len(X0[0]))
-f3_ax2.title.set_text("Fittest Tracker")
+# f3_ax2.view_init(azim=-130)
+# f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
+# print(len(X0), len(X0[0]))
+# f3_ax2.title.set_text("Fittest Tracker")
 
-f3_ax2.scatter(hX_1, hY_1, hZ_1, marker='*')
+# f3_ax2.scatter(hX_1, hY_1, hZ_1, marker='*')
 
 
 plt.show()
