@@ -182,51 +182,10 @@ landscape_arr = [X0, Y0, Z0]
 population_0 = [make_Deme(copy.deepcopy(R0)) for i in range(int(POP_SIZE/DEME_SIZE))]
 population_1 = copy.deepcopy(population_0)
 
-print(vars(population_0[0][0]))
+# print(vars(population_0[0][0]))
 
 ### Use this for printing out what the inviduals array is
 # print([Individual.G for Individual in population])
-
-###############################################################################
-###     Hillclimber - Population Plot (Pre)      ###
-# fig2 = plt.figure()
-# fig2.suptitle("Hillclimber")
-
-# f2_ax0 = fig2.add_subplot(131,projection='3d')
-# f2_ax0.set_aspect('equal')
-
-# pre_pop0_X = [Individual.i for Individual in population_0]
-# pre_pop0_Y = [Individual.j for Individual in population_0]
-# pre_pop0_Z = [Individual.fit for Individual in population_0]
-
-# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f2_ax0.view_init(azim=-130)
-# f2_ax0.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-# f2_ax0.title.set_text("Population (Pre)")
-
-# f2_ax0.scatter(pre_pop0_X, pre_pop0_Y, pre_pop0_Z, marker='*')
-
-
-###     Crossover - Population Plot (Pre)      ###
-# fig3 = plt.figure()
-# fig3.suptitle("Crossover")
-
-# f3_ax0 = fig3.add_subplot(131,projection='3d')
-# f3_ax0.set_aspect('equal')
-
-# pre_pop1_X = [Individual.i for Individual in population_1]
-# pre_pop1_Y = [Individual.j for Individual in population_1]
-# pre_pop1_Z = [Individual.fit for Individual in population_1]
-
-# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f3_ax0.view_init(azim=-130)
-# f3_ax0.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
-# f3_ax0.title.set_text("Population (Pre)")
-
-# f3_ax0.scatter(pre_pop1_X, pre_pop1_Y, pre_pop1_Z, marker='*')
-
 
 ###############################################################################
 ###             Genetic Algorithms      ###
@@ -246,7 +205,11 @@ def hillclimber_GA(population):
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
         fittest_last = [population[i][0] for i in range(len(population))]
 
-        (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
+        # (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
+
+        migrant_indexes = [0 for l in range(len(population))]
+        target_deme = [l for l in range(len(population))]
+
 
         done = False
 
@@ -257,6 +220,9 @@ def hillclimber_GA(population):
         while not(done):
 
                 for p in range(len(population)):
+
+                        migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
 
                         # Select the parent from the population
                         mutated_individual_index = random.randint(0,len(population[p])-1)
@@ -281,9 +247,6 @@ def hillclimber_GA(population):
                                 fittestX[p].append(fittest[p].i)
                                 fittestY[p].append(fittest[p].j)
                                 fittestZ[p].append(fittest[p].fit)
-                                # if (p == 0):
-                                #         print(fittest_arr[p][2])
-                                #         print(fittest[p].fit, "\n")
 
                         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
                         fittest_last[p] = fittest[p]
@@ -296,10 +259,10 @@ def hillclimber_GA(population):
                                 if (generation_0 == 1900):
                                         done = True
 
-                # for gg in range(len(population[0])):
-                #         print(population[0][gg].fit, " ", end="", flush=True)
+                target_deme = random.shuffle(target_deme)
+                for r in range(len(population)):
+                        population[r][migrant_indexes[r]] = copy.deepcopy(population[target_deme[r], migrant_indexes[target_deme[r]]])
 
-                # print("\n", fittest[0].fit, "\n")
 
         fittest_arr = [fittestX, fittestY, fittestZ]
 
