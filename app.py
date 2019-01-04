@@ -151,7 +151,7 @@ fig.suptitle("Fitness Landscape")
 #   Create the X and Y axes based on i and j values of the population
 x0 = np.arange(0, (GENE_SIZE/2)+1, 1)
 y0 = np.arange(0, (GENE_SIZE/2)+1, 1)
-X0, Y0 = np.meshgrid(x0, y0)
+Y0, X0 = np.meshgrid(x0, y0)
 
 #   Set up Z axis based on fitness values of the population
 z0 = (2**X0 + 2**Y0)
@@ -209,7 +209,7 @@ def hillclimber_GA(population):
 
         migrant_indexes = [0 for l in range(len(population))]
         target_deme = [l for l in range(len(population))]
-
+        print(target_deme)
         done = False
 
         generation_0 = 0
@@ -220,7 +220,17 @@ def hillclimber_GA(population):
 
                 for p in range(len(population)):
 
-                        migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
+                        # Select a migrant, making sure that it's not the fittest individual of that deme
+                        migrant_Chosen = False
+                        while not(migrant_Chosen):
+
+                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
+                                if (fittest[p] != population[migrant_indexes[p]]):
+                                        migrant_Chosen = True
+                                else:
+                                        migrant_Chosen = False
 
 
                         # Select the parent from the population
@@ -258,9 +268,9 @@ def hillclimber_GA(population):
                                 if (generation_0 == 1900):
                                         done = True
 
-                target_deme = random.shuffle(target_deme)
-                for r in range(len(population)):
-                        population[r][migrant_indexes[r]] = copy.deepcopy(population[target_deme[r], migrant_indexes[target_deme[r]]])
+                # random.shuffle(target_deme)
+                # for r in range(len(population)):
+                #         population[r][migrant_indexes[r]] = copy.deepcopy(population[target_deme[r]][migrant_indexes[target_deme[r]]])
 
 
         fittest_arr = [fittestX, fittestY, fittestZ]
