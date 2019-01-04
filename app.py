@@ -210,7 +210,6 @@ def hillclimber_GA(population):
         migrant_indexes = [0 for l in range(len(population))]
         target_deme = [l for l in range(len(population))]
 
-
         done = False
 
         generation_0 = 0
