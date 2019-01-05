@@ -224,18 +224,6 @@ def hillclimber_GA(population, ran):
 
                 for p in range(len(population)):
 
-
-                        # Select a migrant, making sure that it's not the fittest individual of that deme
-                        migrant_Chosen = False
-                        while not(migrant_Chosen):
-
-                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
-
-                                if (fittest[p] != population[p][migrant_indexes[p]]):
-                                        migrant_Chosen = True
-                                else:
-                                        migrant_Chosen = False
-
                         # print(population[p][migrant_indexes[p]].fit)
 
                         # Select the parent from the population
@@ -264,6 +252,17 @@ def hillclimber_GA(population, ran):
 
                         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
                         fittest_last[p] = fittest[p]
+
+                        # Select a migrant, making sure that it's not the fittest individual of that deme
+                        migrant_Chosen = False
+                        while not(migrant_Chosen):
+
+                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
+                                if (fittest[p] != population[p][migrant_indexes[p]]):
+                                        migrant_Chosen = True
+                                else:
+                                        migrant_Chosen = False
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
@@ -351,24 +350,14 @@ def crossover_GA(population, ran):
                 select1 = False
                 select2 = False
 
+                for it in range(len(population[0])):
+                        print(population[0][it].fit, end=', ')
+                print("\n")
+
                 for p in range(len(population)):
 
                         # Make sure not to select the same parent
                         while not(select):
-
-                                # Select a migrant, making sure that it's not the fittest individual of that deme
-                                migrant_Chosen = False
-                                while not(migrant_Chosen):
-
-                                        migrant_indexes[p] = random.randint(0,len(population[p])-1)
-
-                                        if (fittest[p] != population[p][migrant_indexes[p]]):
-                                                migrant_Chosen = True
-                                        else:
-                                                migrant_Chosen = False
-
-                                print(population[p][migrant_indexes[p]].fit)
-                                print(fittest[p].fit, "\n")
 
                                 # Select two individuals to fight to be the first parent from the population
                                 # making sure it's not the same individual
@@ -416,11 +405,11 @@ def crossover_GA(population, ran):
                                 b = random.randint(0,len(population[p])-1)
 
                                 if (a != b):
-                                        if (population[p][a].fit > population[p][b].fit):
-                                                loser = a
-                                        else:
-                                                loser = b
                                         l_select = True
+                                        if (population[p][a].fit > population[p][b].fit):
+                                                loser = b
+                                        else:
+                                                loser = a
 
                         # Check if the loser can be replaced, and replace it
                         if (mutant_child.fit > population[p][loser].fit):
@@ -436,8 +425,26 @@ def crossover_GA(population, ran):
                                 fittestY[p].append(fittest[p].j)
                                 fittestZ[p].append(fittest[p].fit)
 
+                        # if (p == 5):
+                        #         print(fittestZ[5][-1])
+                        #         print(fittest[5].fit, "\n")
+
                         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
                         fittest_last[p] = fittest[p]
+
+                        # Select a migrant, making sure that it's not the fittest individual of that deme
+                        migrant_Chosen = False
+                        while not(migrant_Chosen):
+
+                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
+                                if (fittest[p] != population[p][migrant_indexes[p]]):
+                                        migrant_Chosen = True
+                                else:
+                                        migrant_Chosen = False
+
+                                # print(population[p][migrant_indexes[p]].fit)
+                                # print(fittest[p].fit, "\n")
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
@@ -477,6 +484,11 @@ def crossover_GA(population, ran):
                         # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
                         population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
 
+                print(population[0][get_Fittest(copy.deepcopy(population[0]))].fit)
+                print(population[0][migrant_indexes[0]].fit)
+                for it in range(len(population[0])):
+                        print(population[0][it].fit, end = ', ')
+                print("\n\n")
                 # print(population[0][migrant_indexes[0]].fit)
                 # print(migrant_Arr[0].fit)
                 # print(population[target_deme[0]][migrant_indexes[target_deme[0]]].fit, "\n\n")
