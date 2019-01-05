@@ -5,13 +5,16 @@ import random
 import copy
 
 
-GENE_SIZE = 20
+GENE_SIZE = 30
 POP_SIZE = 400
 DEME_SIZE = int(POP_SIZE/20)
 MUTATION_RATE = 0.2
 
 m = ['FPTP', 'POP']
 mode = m[0]
+
+P = ['FIRST', 'ALL']
+Pmode = P[1]
 
 xy_lim = 10
 
@@ -193,7 +196,7 @@ population_1 = copy.deepcopy(population_0)
 ###############################################################################
 ###             Hillclimber             ###
 
-def hillclimber_GA(population):
+def hillclimber_GA(population, ran):
 
         fittestX = [[] for aa in range(len(population))]
         fittestY = [[] for bb in range(len(population))]
@@ -209,7 +212,8 @@ def hillclimber_GA(population):
 
         migrant_indexes = [0 for l in range(len(population))]
         target_deme = [l for l in range(len(population))]
-        print(target_deme)
+        # print(target_deme)
+
         done = False
 
         generation_0 = 0
@@ -220,18 +224,7 @@ def hillclimber_GA(population):
 
                 for p in range(len(population)):
 
-
-                        # Select a migrant, making sure that it's not the fittest individual of that deme
-                        migrant_Chosen = False
-                        while not(migrant_Chosen):
-
-                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
-
-                                if (fittest[p] != population[migrant_indexes[p]]):
-                                        migrant_Chosen = True
-                                else:
-                                        migrant_Chosen = False
-
+                        # print(population[p][migrant_indexes[p]].fit)
 
                         # Select the parent from the population
                         mutated_individual_index = random.randint(0,len(population[p])-1)
@@ -260,6 +253,17 @@ def hillclimber_GA(population):
                         # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
                         fittest_last[p] = fittest[p]
 
+                        # Select a migrant, making sure that it's not the fittest individual of that deme
+                        migrant_Chosen = False
+                        while not(migrant_Chosen):
+
+                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
+
+                                if (fittest[p] != population[p][migrant_indexes[p]]):
+                                        migrant_Chosen = True
+                                else:
+                                        migrant_Chosen = False
+
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
                                 if ((fittest[p].fit == MAX_FITNESS) or (generation_0 == 3000)):
@@ -268,16 +272,43 @@ def hillclimber_GA(population):
                                 if (generation_0 == 1900):
                                         done = True
 
-                # random.shuffle(target_deme)
-                # for r in range(len(population)):
-                #         population[r][migrant_indexes[r]] = copy.deepcopy(population[target_deme[r]][migrant_indexes[target_deme[r]]])
+                # Do a same deme check
+                same_Deme = True
+                while (same_Deme):
 
+                        # Shuffle the target demes
+                        random.shuffle(target_deme)
+
+                        # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
+                        for h in range(len(population)):
+                                if (target_deme[h] == h):
+                                        same_Deme = True
+                                        break
+                                else:
+                                        same_Deme = False
+
+                # Make new array of migrants
+                migrant_Arr = []
+                for ip in range(len(population)):
+                        migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
+                        # print(migrant_Arr[ip].fit)
+                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
+
+                # print(migrant_Arr[0].fit)
+                # print(population[0][migrant_indexes[0]].fit, "\n")
+
+                # Migrate the migrants to their new demes
+                for r in range(len(population)):
+                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
+                        population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+
+                # print(population[0][migrant_indexes[0]].fit)
+                # print(migrant_Arr[0].fit)
+                # print(population[target_deme[0]][migrant_indexes[target_deme[0]]].fit, "\n\n")
 
         fittest_arr = [fittestX, fittestY, fittestZ]
 
         print("------   HILLCLIMBER    ------")
-        # print(fittestX)
-        # print(fittestY)
         print(fittestZ)
         print("Peak Fitness Possible: ", MAX_FITNESS)
         print("Generation: ", generation_0)
@@ -289,19 +320,29 @@ def hillclimber_GA(population):
 ###############################################################################
 ###             Crossover             ###
 
-def crossover_GA(population_1):
+def crossover_GA(population, ran):
 
-        fittestX_1 = []
-        fittestY_1 = []
-        fittestZ_1 = []
+        fittestX = [[] for aa in range(len(population))]
+        fittestY = [[] for bb in range(len(population))]
+        fittestZ = [[] for cc in range(len(population))]
+        fittest_XYZ = [[], [], []]
+        fittest_arr = [[],[],[]]
+        # print(fittest_arr)
 
-        fittest_last_1 = population_1[get_Fittest(population_1)]
+        fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
+        fittest_last = [population[i][0] for i in range(len(population))]
+
+        # (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
+
+        migrant_indexes = [0 for l in range(len(population))]
+        target_deme = [l for l in range(len(population))]
+        # print(target_deme)
 
         done = False
 
         generation_1 = 0
 
-        MAX_FITNESS = int(max(map(max, Z0)))
+        MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
 
         while not(done):
 
@@ -309,95 +350,164 @@ def crossover_GA(population_1):
                 select1 = False
                 select2 = False
 
-                # Make sure not to select the same parent
-                while not(select):
+                for it in range(len(population[0])):
+                        print(population[0][it].fit, end=', ')
+                print("\n")
 
-                        # Select two individuals to fight to be the first parent from the population
-                        while not(select1):
-                                a = population_1[random.randint(0,len(population_1)-1)]
-                                b = population_1[random.randint(0,len(population_1)-1)]
+                for p in range(len(population)):
+
+                        # Make sure not to select the same parent
+                        while not(select):
+
+                                # Select two individuals to fight to be the first parent from the population
+                                # making sure it's not the same individual
+                                while not(select1):
+                                        a = population[p][random.randint(0,len(population[p])-1)]
+                                        b = population[p][random.randint(0,len(population[p])-1)]
+
+                                        if (a != b):
+                                                if (a.fit > b.fit):
+                                                        parent1 = copy.deepcopy(a)
+                                                else:
+                                                        parent1 = copy.deepcopy(b)
+                                                select1 = True
+
+                                # Select two individuals to fight to be the second parent from the population
+                                while not(select2):
+                                        a = population[p][random.randint(0,len(population[p])-1)]
+                                        b = population[p][random.randint(0,len(population[p])-1)]
+
+                                        if (a != b):
+                                                if (a.fit > b.fit):
+                                                        parent2 = copy.deepcopy(a)
+                                                else:
+                                                        parent2 = copy.deepcopy(b)
+                                                select2 = True
+
+                                if (parent1 != parent2):
+                                        select = True
+
+                        # Perform crossover on the two parents to generate a child
+                        child = have_Sex(parent1, parent2, copy.deepcopy(ran))
+
+
+                        # Mutate the child to create a mutated child to put back into population
+                        mutant_child = mutate(child, copy.deepcopy(ran))
+
+                        # Choose whether to put the child back into the population
+                        # If the child is put back into the population then this counts as a generation
+
+                        l_select = False
+
+                        # Select two individuals to fight to see who gets replaced from the population
+                        while not(l_select):
+                                a = random.randint(0,len(population[p])-1)
+                                b = random.randint(0,len(population[p])-1)
 
                                 if (a != b):
-                                        if (a.fit > b.fit):
-                                                parent1 = copy.deepcopy(a)
+                                        l_select = True
+                                        if (population[p][a].fit > population[p][b].fit):
+                                                loser = b
                                         else:
-                                                parent1 = copy.deepcopy(b)
-                                        select1 = True
+                                                loser = a
 
-                        # Select two individuals to fight to be the second parent from the population
-                        while not(select2):
-                                a = population_1[random.randint(0,len(population_1)-1)]
-                                b = population_1[random.randint(0,len(population_1)-1)]
+                        # Check if the loser can be replaced, and replace it
+                        if (mutant_child.fit > population[p][loser].fit):
+                                population[p][loser] = copy.deepcopy(mutant_child)
+                                generation_1 += 1
+                                # print(generation_1)
 
-                                if (a != b):
-                                        if (a.fit > b.fit):
-                                                parent2 = copy.deepcopy(a)
-                                        else:
-                                                parent2 = copy.deepcopy(b)
-                                        select2 = True
+                        # Now find the fittest in this generation
+                        fittest[p] = population[p][get_Fittest(population[p])]
 
-                        if (parent1 != parent2):
-                                select = True
+                        if (fittest[p] != fittest_last[p]):
+                                fittestX[p].append(fittest[p].i)
+                                fittestY[p].append(fittest[p].j)
+                                fittestZ[p].append(fittest[p].fit)
 
-                # Perform crossover on the two parents to generate a child
-                child = have_Sex(parent1, parent2, copy.deepcopy(R0))
+                        # if (p == 5):
+                        #         print(fittestZ[5][-1])
+                        #         print(fittest[5].fit, "\n")
 
+                        # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
+                        fittest_last[p] = fittest[p]
 
-                # Mutate the child to create a mutated child to put back into population
-                mutant_child = mutate(child, copy.deepcopy(R0))
+                        # Select a migrant, making sure that it's not the fittest individual of that deme
+                        migrant_Chosen = False
+                        while not(migrant_Chosen):
 
-                # Choose whether to put the child back into the population
-                # If the child is put back into the population then this counts as a generation
+                                migrant_indexes[p] = random.randint(0,len(population[p])-1)
 
-                l_select = False
-
-                # Select two individuals to fight to see who gets replaced from the population
-                while not(l_select):
-                        a = random.randint(0,len(population_1)-1)
-                        b = random.randint(0,len(population_1)-1)
-
-                        if (a != b):
-                                if (population_1[a].fit > population_1[b].fit):
-                                        loser = a
+                                if (fittest[p] != population[p][migrant_indexes[p]]):
+                                        migrant_Chosen = True
                                 else:
-                                        loser = b
-                                l_select = True
+                                        migrant_Chosen = False
 
-                # Check if the loser can be replaced, and replace it
-                if (mutant_child.fit > population_1[loser].fit):
-                        population_1[loser] = copy.deepcopy(mutant_child)
-                        generation_1 += 1
-                        # print(generation_1)
+                                # print(population[p][migrant_indexes[p]].fit)
+                                # print(fittest[p].fit, "\n")
 
-                # Now find the fittest in this generation
-                fittest_1 = population_1[get_Fittest(population_1)]
-                if (fittest_1 != fittest_last_1):
-                        fittestX_1.append(fittest_1.i)
-                        fittestY_1.append(fittest_1.j)
-                        fittestZ_1.append(fittest_1.fit)
-                        print(fittest_1.fit)
+                        # Check if the population has found an individual which has a high enough fitness to consider complete
+                        if (mode == 'FPTP'):
+                                if ((fittest[p].fit == MAX_FITNESS) or (generation_1 == 3000)):
+                                        done = True
+                        else:
+                                if (generation_1 == 1900):
+                                        done = True
 
-                # Make sure the fittest isn't the same from last generation because plotting it isn't helpful
-                fittest_last_1 = fittest_1
+                # Do a same deme check
+                same_Deme = True
+                while (same_Deme):
 
-                # Check if the population has found an individual which has a high enough fitness to consider complete
-                if (mode == 'FPTP'):
-                        if ((MAX_FITNESS * 0.95 < fittest_1.fit <= MAX_FITNESS) or (generation_1 == 3000)):
-                                done = True
-                else:
-                        if (generation_1 == 1900):
-                                done = True
+                        # Shuffle the target demes
+                        random.shuffle(target_deme)
+
+                        # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
+                        for h in range(len(population)):
+                                if (target_deme[h] == h):
+                                        same_Deme = True
+                                        break
+                                else:
+                                        same_Deme = False
+
+                # Make new array of migrants
+                migrant_Arr = []
+                for ip in range(len(population)):
+                        migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
+                        # print(migrant_Arr[ip].fit)
+                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
+
+                # print(migrant_Arr[0].fit)
+                # print(population[0][migrant_indexes[0]].fit, "\n")
+
+                # Migrate the migrants to their new demes
+                for r in range(len(population)):
+                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
+                        population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+
+                print(population[0][get_Fittest(copy.deepcopy(population[0]))].fit)
+                print(population[0][migrant_indexes[0]].fit)
+                for it in range(len(population[0])):
+                        print(population[0][it].fit, end = ', ')
+                print("\n\n")
+                # print(population[0][migrant_indexes[0]].fit)
+                # print(migrant_Arr[0].fit)
+                # print(population[target_deme[0]][migrant_indexes[target_deme[0]]].fit, "\n\n")
+
+        fittest_arr = [fittestX, fittestY, fittestZ]
 
         print("------   CROSSOVER    ------")
-        print(fittestX_1, fittestY_1, fittestZ_1)
+        print(fittestZ)
         print("Peak Fitness Possible: ", MAX_FITNESS)
         print("Generation: ", generation_1)
         print("------   CROSSOVER    ------")
+
+        return fittest_arr
 
 
 ###############################################################################
 #############################       Main Loop       ###########################
 
+# HILLCLIMBER
 fig2 = plt.figure()
 fig2.suptitle("Hillclimber")
 
@@ -407,21 +517,58 @@ f2_ax2 = fig2.add_subplot(133,projection='3d')
 
 # Plot the pre-evolution population sub-figure
 plot_Surface(f2_ax0, copy.deepcopy(landscape_arr))
-for rr in range(len(population_0)):
-        plot_Pop(f2_ax0, population_0[rr], "Hillclimber (Pre)")
+
+if Pmode == "ALL":
+        for rr in range(len(population_0)):
+                plot_Pop(f2_ax0, population_0[rr], "Hillclimber (Pre)")
+else:
+        plot_Pop(f2_ax0, population_0[0], "Hillclimber (Pre)")
 
 # Do the GA on the population
-fittest_arr = hillclimber_GA(population_0)
+fittest_arr_0 = hillclimber_GA(population_0, copy.deepcopy(R0))
 
 # Plot the post-evolution population sub-figure
 plot_Surface(f2_ax1, copy.deepcopy(landscape_arr))
-for tt in range(len(population_0)):
-        plot_Pop(f2_ax1, population_0[tt], "Hillclimber (Post)")
+if Pmode == "ALL":
+        for tt in range(len(population_0)):
+                plot_Pop(f2_ax1, population_0[tt], "Hillclimber (Post)")
+else:
+        plot_Pop(f2_ax1, population_0[0], "Hillclimber (Post)")
 
 # Plot the post-evolution fittest trace
 plot_Surface(f2_ax2, copy.deepcopy(landscape_arr))
 for yy in range(len(population_0)):
-        plot_Fittest(f2_ax2, population_0[yy], copy.deepcopy(fittest_arr))
+        plot_Fittest(f2_ax2, population_0[yy], copy.deepcopy(fittest_arr_0))
+
+#------------------------------------------------------------------------------#
+
+# CROSSOVER
+fig3 = plt.figure()
+fig3.suptitle("Crossover")
+
+f3_ax0 = fig3.add_subplot(131,projection='3d')
+f3_ax1 = fig3.add_subplot(132,projection='3d')
+f3_ax2 = fig3.add_subplot(133,projection='3d')
+
+# Plot the pre-evolution population sub-figure
+plot_Surface(f3_ax0, copy.deepcopy(landscape_arr))
+for rr in range(len(population_1)):
+        plot_Pop(f3_ax0, population_1[rr], "Crossover (Pre)")
+# plot_Pop(f3_ax0, population_1[0], "Crossover (Pre)")
+
+# Do the GA on the population
+fittest_arr_1 = crossover_GA(population_1, copy.deepcopy(R0))
+
+# Plot the post-evolution population sub-figure
+plot_Surface(f3_ax1, copy.deepcopy(landscape_arr))
+for tt in range(len(population_1)):
+        plot_Pop(f3_ax1, population_1[tt], "Crossover (Post)")
+# plot_Pop(f3_ax1, population_1[0], "Crossover (Post)")
+
+# Plot the post-evolution fittest trace
+plot_Surface(f3_ax2, copy.deepcopy(landscape_arr))
+for yy in range(len(population_1)):
+        plot_Fittest(f3_ax2, population_1[yy], copy.deepcopy(fittest_arr_1))
 
 ###############################################################################
 ###     Plots       ###
@@ -463,79 +610,5 @@ Z2 = np.divide(Z2, copy.deepcopy(z0))
 ax2.view_init(azim=-130)
 ax2.plot_surface(X0, Y0, Z2, cmap='copper')
 ax2.title.set_text("R(i,j)")
-
-
-# ###############################################################################
-# ###     Hillclimber - Population Plot (Post)        ###
-
-# f2_ax1 = fig2.add_subplot(132,projection='3d')
-# f2_ax1.set_aspect('equal')
-
-# popX_0 = [Individual.i for Individual in population_0]
-# popY_0 = [Individual.j for Individual in population_0]
-# popZ_0 = [Individual.fit for Individual in population_0]
-
-# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f2_ax1.view_init(azim=-130)
-# f2_ax1.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-# f2_ax1.title.set_text("Population (Post)")
-
-# f2_ax1.scatter(popX_0, popY_0, popZ_0, marker='*')
-
-# ###     Hillclimber Plot         ###
-
-# f2_ax2 = fig2.add_subplot(133,projection='3d')
-# f2_ax2.set_aspect('equal')
-
-# hX = fittestX_0
-# hY = fittestY_0
-# hZ = fittestZ_0
-
-# f2_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f2_ax2.view_init(azim=-130)
-# f2_ax2.plot_surface(X0, Y0, f2_Z0, cmap='copper', alpha=0.7)
-# f2_ax2.title.set_text("Fittest Tracker")
-
-# f2_ax2.scatter(hX,hY,hZ, marker='*')
-
-
-# ###############################################################################
-# ###     Crossover - Population Plot (Post)        ###
-
-# f3_ax1 = fig3.add_subplot(132,projection='3d')
-# f3_ax1.set_aspect('equal')
-
-# popX_1 = [Individual.i for Individual in population_1]
-# popY_1 = [Individual.j for Individual in population_1]
-# popZ_1 = [Individual.fit for Individual in population_1]
-
-# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f3_ax1.view_init(azim=-130)
-# f3_ax1.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7)
-# f3_ax1.title.set_text("Population (Post)")
-
-# f3_ax1.scatter(popX_1, popY_1, popZ_1, marker='*')
-
-# ###     Crossover Plot         ###
-
-# f3_ax2 = fig3.add_subplot(133,projection='3d')
-# f3_ax2.set_aspect('equal')
-
-# hX_1 = fittestX_1
-# hY_1 = fittestY_1
-# hZ_1 = fittestZ_1
-
-# f3_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-# f3_ax2.view_init(azim=-130)
-# f3_ax2.plot_surface(X0, Y0, f3_Z0, cmap='copper', alpha=0.7, rstride=1, cstride=1)
-# print(len(X0), len(X0[0]))
-# f3_ax2.title.set_text("Fittest Tracker")
-
-# f3_ax2.scatter(hX_1, hY_1, hZ_1, marker='*')
-
 
 plt.show()
