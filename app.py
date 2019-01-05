@@ -143,6 +143,20 @@ def plot_Fittest(ax, pop, arr):
 
         return 0
 
+def fitness_Proportionate_Selection(pop):
+
+        # Make an array of fitnesses
+        arr = [pop[x].fit for x in range(len(pop))]
+        arr_sum = sum(arr)
+
+        pick = random.uniform(0, arr_sum)
+        current = 0
+
+        for Individual in pop:
+                current += Individual.fit
+                if (current > pick):
+                        return Individual
+
 
 ###############################################################################
 ###     SET UP FITNESS LANDSCAPE        ###
@@ -208,11 +222,8 @@ def hillclimber_GA(population, ran):
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
         fittest_last = [population[i][0] for i in range(len(population))]
 
-        # (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
-
         migrant_indexes = [0 for l in range(len(population))]
         target_deme = [l for l in range(len(population))]
-        # print(target_deme)
 
         done = False
 
@@ -222,25 +233,28 @@ def hillclimber_GA(population, ran):
 
         while not(done):
 
+                temp_population = copy.deepcopy(population)
+
                 for p in range(len(population)):
 
-                        # print(population[p][migrant_indexes[p]].fit)
+                        for q in range(len(population[p])):
 
-                        # Select the parent from the population
-                        mutated_individual_index = random.randint(0,len(population[p])-1)
-                        parent = population[p][mutated_individual_index]
+                                # Quick check to make sure that the fittest individual is not replaced
+                                if (fittest != population[p][q]):
 
-                        # Mutate the parent to create a child and recalculate child values
-                        child = mutate(copy.deepcopy(parent), copy.deepcopy(R0))
-                        # print(R0[child.i, child.j])
-                        # child.recalc(copy.deepcopy(R0))
-                        # print(child.R)
+                                        # Select the parent from the population using FPS
+                                        parent = fitness_Proportionate_Selection(population[p])
 
-                        # Choose whether to put the child back into the population
-                        # If the child is put back into the population then this counts as a generation
-                        if (child.fit > parent.fit):
-                                population[p][mutated_individual_index] = copy.deepcopy(child)
-                                generation_0 += 1
+                                        # Mutate the parent to create a child and recalculate child values
+                                        child = mutate(copy.deepcopy(parent), copy.deepcopy(R0))
+
+                                        # Choose whether to put the child back into the population
+                                        # If the child is fitter than its parent then put back into the population
+                                        if (child.fit > parent.fit):
+                                                temp_population[p][q] = copy.deepcopy(child)
+
+                        # Now replace the old population with the new population
+                        population[p] = copy.deepcopy(temp_population[p])
 
                         # Now find the fittest in this generation
                         fittest[p] = population[p][get_Fittest(population[p])]
@@ -266,10 +280,10 @@ def hillclimber_GA(population, ran):
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
-                                if ((fittest[p].fit == MAX_FITNESS) or (generation_0 == 3000)):
+                                if ((fittest[p].fit == MAX_FITNESS) or (generation_0 == 2000)):
                                         done = True
                         else:
-                                if (generation_0 == 1900):
+                                if (generation_0 == 1000):
                                         done = True
 
                 # Do a same deme check
@@ -291,20 +305,14 @@ def hillclimber_GA(population, ran):
                 migrant_Arr = []
                 for ip in range(len(population)):
                         migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
-                        # print(migrant_Arr[ip].fit)
-                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
-
-                # print(migrant_Arr[0].fit)
-                # print(population[0][migrant_indexes[0]].fit, "\n")
 
                 # Migrate the migrants to their new demes
                 for r in range(len(population)):
                         # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
                         population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
 
-                # print(population[0][migrant_indexes[0]].fit)
-                # print(migrant_Arr[0].fit)
-                # print(population[target_deme[0]][migrant_indexes[target_deme[0]]].fit, "\n\n")
+                generation_0 += 1
+                print(generation_0)
 
         fittest_arr = [fittestX, fittestY, fittestZ]
 
