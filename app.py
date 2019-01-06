@@ -8,11 +8,12 @@ import copy
 GENE_SIZE = 50
 POP_SIZE = 400
 DEME_SIZE = int(POP_SIZE/20)
-MUTATION_RATE = 1/GENE_SIZE
 
-MIGRATION_RATE = 1/DEME_SIZE
+MUTATION_RATE = 2/GENE_SIZE
 
-STOP_GEN_NUM = 300
+MIGRATION_RATE = 1/60
+
+STOP_GEN_NUM = 700
 TEST_GEN_NUM = 400
 
 m = ['FPTP', 'POP']
@@ -94,8 +95,12 @@ def get_Fittest(pop):
 def mutate(par, R):
         child = copy.deepcopy(par)
         for i in range(len(par.G)):
-                if (random.uniform(0,1) < (MUTATION_RATE)):
-                        child.G[i] = random.randint(0,1)
+                if (random.random() <= (MUTATION_RATE)):
+                        # child.G[i] = random.randint(0,1)
+                        if (child.G[i] == 1):
+                                child.G[i] = 0
+                        else:
+                                child.G[i] = 1
         child.recalc(R)
         return child
 
@@ -117,7 +122,7 @@ def bang(par1, par2, R):
 
         # Uniform crossover the child
         for i in range(len(child.G)):
-                if (random.uniform(0,1) > 50):
+                if (random.uniform(0,1) >= 50):
                         child.G[i] = par1.G[i]
                 else:
                         child.G[i] = par2.G[i]
@@ -150,14 +155,14 @@ def plot_Pop(ax, pop, text):
 
         return 0
 
-def plot_Fittest(ax, pop, arr):
+def plot_Fittest(ax, pop, arr, deme_num):
 
         ax.set_aspect('equal')
 
         ax.title.set_text("Fittest Tracker")
 
-        for i in range(len(pop)):
-                ax.scatter(arr[0][i], arr[1][i], arr[2][i], marker='*')
+        # for i in range(len(pop)):
+        ax.scatter(arr[0][deme_num], arr[1][deme_num], arr[2][deme_num], marker='*')
 
         return 0
 
@@ -249,13 +254,15 @@ def hillclimber_GA(population, ran):
 
                                         # Select the parent from the population using FPS
                                         parent = fitness_Proportionate_Selection(population[p])
-
                                         # Mutate the parent to create a child and recalculate child values
                                         child = mutate(copy.deepcopy(parent), copy.deepcopy(R0))
-
+                                        # if (child.G == parent.G).all():
+                                        #         print("SAME")
+                                        # else:
+                                        #         print("DIFFERENT")
                                         # Always put the child back into the population, regardless if it's fitter or not
-                                        # if (child.fit > parent.fit):
-                                        temp_population[p][q] = copy.deepcopy(child)
+                                        if (child.fit > parent.fit):
+                                                temp_population[p][q] = copy.deepcopy(child)
 
 
                         # Now replace the old deme with the new deme
@@ -291,8 +298,8 @@ def hillclimber_GA(population, ran):
                                 if (generation_0 == TEST_GEN_NUM):
                                         done = True
 
-                if (random.uniform(0,1) < MIGRATION_RATE):
-
+                if (random.random() < MIGRATION_RATE):
+                        print("MIGRATION")
                         # Do a same deme check
                         same_Deme = True
                         while (same_Deme):
@@ -438,7 +445,8 @@ def crossover_GA(population, ran):
                                         done = True
 
 
-                if (random.uniform(0,1) < MIGRATION_RATE):
+                if (random.random() < MIGRATION_RATE):
+                        print("MIGRATION")
 
                         # Do a same deme check
                         same_Deme = True
@@ -526,7 +534,7 @@ else:
 # Plot the post-evolution fittest trace
 plot_Surface(f2_ax2, copy.deepcopy(landscape_arr))
 for yy in range(len(population_0)):
-        plot_Fittest(f2_ax2, population_0[yy], copy.deepcopy(fittest_arr_0))
+        plot_Fittest(f2_ax2, population_0[yy], copy.deepcopy(fittest_arr_0), yy)
 
 #------------------------------------------------------------------------------#
 
@@ -556,7 +564,7 @@ for tt in range(len(population_1)):
 # Plot the post-evolution fittest trace
 plot_Surface(f3_ax2, copy.deepcopy(landscape_arr))
 for yy in range(len(population_1)):
-        plot_Fittest(f3_ax2, population_1[yy], copy.deepcopy(fittest_arr_1))
+        plot_Fittest(f3_ax2, population_1[yy], copy.deepcopy(fittest_arr_1), yy)
 
 ###############################################################################
 ###     Plots       ###
