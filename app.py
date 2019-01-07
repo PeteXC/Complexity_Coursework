@@ -7,13 +7,13 @@ import copy
 
 GENE_SIZE = 50
 POP_SIZE = 400
-DEME_SIZE = int(POP_SIZE/20)
+DEME_SIZE = int(POP_SIZE/8)
 
-MUTATION_RATE = 2/GENE_SIZE
+MUTATION_RATE = 0.03#1/GENE_SIZE
 
-MIGRATION_RATE = 1/60
+MIGRATION_RATE = 0.005#1/50
 
-STOP_GEN_NUM = 700
+STOP_GEN_NUM = 1000
 TEST_GEN_NUM = 400
 
 m = ['FPTP', 'POP']
@@ -132,6 +132,75 @@ def bang(par1, par2, R):
 
 def make_Deme(ran):
         return [Individual(ran) for q in range(DEME_SIZE)]
+
+def migrate(target_deme, migrant_indexes, population):
+        if (random.random() < MIGRATION_RATE):
+                print("MIGRATION")
+
+                # Do a same deme check
+                same_Deme = True
+                while (same_Deme):
+
+                        # Shuffle the target demes
+                        random.shuffle(target_deme)
+
+                        # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
+                        for h in range(len(population)):
+                                if (target_deme[h] == h):
+                                        same_Deme = True
+                                        break
+                                else:
+                                        same_Deme = False
+
+                # Make new array of migrants
+                migrant_Arr = []
+                for ip in range(len(population)):
+                        migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
+                        # print(migrant_Arr[ip].fit)
+                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
+
+                # print(migrant_Arr[0].fit)
+                # print(population[0][migrant_indexes[0]].fit, "\n")
+
+                # Migrate the migrants to their new demes
+                for r in range(len(population)):
+                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
+                        population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+
+def adaptive_migrate(target_deme, migrant_indexes, population, fittestZ):
+        if (random.random() < MIGRATION_RATE):
+                print("MIGRATION")
+
+                # Do a same deme check
+                same_Deme = True
+                while (same_Deme):
+
+                        # Shuffle the target demes
+                        random.shuffle(target_deme)
+
+                        # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
+                        for h in range(len(population)):
+                                if (target_deme[h] == h):
+                                        same_Deme = True
+                                        break
+                                else:
+                                        same_Deme = False
+
+                # Make new array of migrants
+                migrant_Arr = []
+                for ip in range(len(population)):
+                        migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
+                        # print(migrant_Arr[ip].fit)
+                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
+
+                # print(migrant_Arr[0].fit)
+                # print(population[0][migrant_indexes[0]].fit, "\n")
+
+                # Migrate the migrants to their new demes
+                for r in range(len(population)):
+                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
+                        population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+
 
 def plot_Surface(ax, arr):
 
@@ -261,8 +330,8 @@ def hillclimber_GA(population, ran):
                                         # else:
                                         #         print("DIFFERENT")
                                         # Always put the child back into the population, regardless if it's fitter or not
-                                        if (child.fit > parent.fit):
-                                                temp_population[p][q] = copy.deepcopy(child)
+                                        # if (child.fit > parent.fit):
+                                        temp_population[p][q] = copy.deepcopy(child)
 
 
                         # Now replace the old deme with the new deme
@@ -298,32 +367,7 @@ def hillclimber_GA(population, ran):
                                 if (generation_0 == TEST_GEN_NUM):
                                         done = True
 
-                if (random.random() < MIGRATION_RATE):
-                        print("MIGRATION")
-                        # Do a same deme check
-                        same_Deme = True
-                        while (same_Deme):
-
-                                # Shuffle the target demes
-                                random.shuffle(target_deme)
-
-                                # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
-                                for h in range(len(population)):
-                                        if (target_deme[h] == h):
-                                                same_Deme = True
-                                                break
-                                        else:
-                                                same_Deme = False
-
-                        # Make new array of migrants
-                        migrant_Arr = []
-                        for ip in range(len(population)):
-                                migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
-
-                        # Migrate the migrants to their new demes
-                        for r in range(len(population)):
-                                # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
-                                population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+                migrate(target_deme, migrant_indexes, population)
 
                 generation_0 += 1
                 print(generation_0)
@@ -445,38 +489,7 @@ def crossover_GA(population, ran):
                                         done = True
 
 
-                if (random.random() < MIGRATION_RATE):
-                        print("MIGRATION")
-
-                        # Do a same deme check
-                        same_Deme = True
-                        while (same_Deme):
-
-                                # Shuffle the target demes
-                                random.shuffle(target_deme)
-
-                                # Check if any migrant will migrate to the same deme as it's already in, if so then reshuffle
-                                for h in range(len(population)):
-                                        if (target_deme[h] == h):
-                                                same_Deme = True
-                                                break
-                                        else:
-                                                same_Deme = False
-
-                        # Make new array of migrants
-                        migrant_Arr = []
-                        for ip in range(len(population)):
-                                migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
-                                # print(migrant_Arr[ip].fit)
-                                # print(population[ip][migrant_indexes[ip]].fit, "\n")
-
-                        # print(migrant_Arr[0].fit)
-                        # print(population[0][migrant_indexes[0]].fit, "\n")
-
-                        # Migrate the migrants to their new demes
-                        for r in range(len(population)):
-                                # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
-                                population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
+                migrate(target_deme, migrant_indexes, population)
 
                 generation_1 += 1
                 print(generation_1)
