@@ -5,13 +5,15 @@ import random
 import copy
 
 
-GENE_SIZE = 20
+GENE_SIZE = 50
 POP_SIZE = 400
-DEME_SIZE = int(POP_SIZE/20)
+DEME_SIZE = int(POP_SIZE/10)
 
 MUTATION_RATE = 1/GENE_SIZE
+# MUTATION_RATE = GENE_SIZE/(np.sqrt(GENE_SIZE**2+500)-0.3)
 
 MIGRATION_RATE = 1/50
+MIGRATION_INTERVAL = 30
 
 STOP_GEN_NUM = 1000
 TEST_GEN_NUM = 400
@@ -119,6 +121,22 @@ def have_Sex(par1, par2, R, gene_size):
         child.recalc(R)
         return child
 
+def pipe(par1, par2, R, gene_size):
+        child = copy.deepcopy(par1)
+        point = random.randint(0, gene_size-1)
+
+        # Create randomised genetic map
+        random.shuffle(child.G)
+
+        # Left side of point from parent 1
+        child.G[:point] = par1.G[:point]
+
+        # Right side of point from parent 2
+        child.G[point:] = par2.G[point:]
+
+        child.recalc(R)
+        return child
+
 def bang(par1, par2, R):
         child = copy.deepcopy(par1)
 
@@ -132,11 +150,11 @@ def bang(par1, par2, R):
         child.recalc(R)
         return child
 
-def make_Deme(ran, gene_size):
-        return [Individual(ran, gene_size) for q in range(DEME_SIZE)]
+def make_Deme(ran, gene_size, deme_size):
+        return [Individual(ran, gene_size) for q in range(deme_size)]
 
-def make_Pop(ran, gene_size):
-        return [make_Deme(copy.deepcopy(ran), gene_size) for i in range(int(POP_SIZE/DEME_SIZE))]
+def make_Pop(ran, gene_size, pop_size, deme_size):
+        return [make_Deme(copy.deepcopy(ran), gene_size, deme_size) for i in range(int(pop_size/deme_size))]
 
 def make_R(gene_size):
         # R0 = np.random.rand(int((gene_size/2)+1), int((gene_size/2)+1))
@@ -155,8 +173,9 @@ def make_R(gene_size):
                         R0[m,n] = (R0[m,n]+1)/2
         return R0
 
-def migrate(target_deme, migrant_indexes, population):
-        if (random.random() < MIGRATION_RATE):
+def migrate(target_deme, migrant_indexes, population, n, mig_interval):
+
+        if (int(n)%mig_interval == 0):
                 print("MIGRATION")
 
                 # Do a same deme check
@@ -189,9 +208,10 @@ def migrate(target_deme, migrant_indexes, population):
                         # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
                         population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
 
-def adaptive_migrate(target_deme, migrant_indexes, population, fittestZ):
-        if (random.random() < MIGRATION_RATE):
-                # print("MIGRATION")
+def adaptive_migrate(target_deme, migrant_indexes, population, n, fittestZ, MI):
+        if (int(n/10) % MI == 0):
+                print("MIGRATION, INTERVAL: ", MI)
+                n=0
 
                 # Do a same deme check
                 same_Deme = True
@@ -258,11 +278,23 @@ def plot_Fittest(ax, pop, arr, deme_num):
         return 0
 
 def plot_Gen():
+
+        global MIGRATION_INTERVAL
+
         gen_fig = plt.figure()
         gen_fig.suptitle("GA Performance")
 
         ax0 = gen_fig.add_subplot(121)
         ax1 = gen_fig.add_subplot(122)
+
+        ax0.title.set_text("Uniform Crossover")
+        ax1.title.set_text("Logarithmic One Point Crossover")
+
+        ax0.set_ylabel('Generations to Peak')
+        ax0.set_xlabel('n')
+
+        ax1.set_ylabel('Logarithmic Generations to Peak')
+        ax1.set_xlabel('n')
 
         hillclimber_gen = []
         crossover_gen = []
@@ -270,34 +302,151 @@ def plot_Gen():
         hillclimber_av = []
         crossover_av = []
 
+        hillclimber_log = []
+        crossover_log = []
+
         n_array = []
         std_dev_hillclimber = []
         std_dev_crossover = []
 
-        for gene_s in range(10, 40, 10):
+        std_dev_hillclimber_log = []
+        std_dev_crossover_log = []
+
+        for gene_s in range(20, 40, 10):
+
+                hillclimber_gen = []
+                crossover_gen = []
 
                 print("Doing Gene Size of ", gene_s)
-                for iteration in range(5):
+                for iteration in range(10):
 
                         print("         Doing iteration ", iteration)
 
                         R1 = make_R(gene_s)
 
+                        pop = make_Pop(copy.deepcopy(R1), gene_s, POP_SIZE, DEME_SIZE)
+
                         # Record all of the GA generation results
-                        hillclimber_gen.append(hillclimber_GA(make_Pop(copy.deepcopy(R1), gene_s), copy.deepcopy(R1), gene_s, 1/gene_s)[3])
-                        crossover_gen.append(crossover_GA(make_Pop(copy.deepcopy(R1), gene_s), copy.deepcopy(R1), gene_s, 1/gene_s)[3])
+
+                        new_hill_gen = hillclimber_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, 1/gene_s, MIGRATION_INTERVAL)[3]
+                        if (new_hill_gen <= gene_s*15):
+                                hillclimber_gen.append(new_hill_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
+                        new_cross_gen = crossover_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, 1/gene_s, MIGRATION_INTERVAL)[3]
+                        if (new_cross_gen <= gene_s*15):
+                                crossover_gen.append(new_cross_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
 
                 # Get the averages of the GA generation results
                 hillclimber_av.append(np.average(hillclimber_gen))
                 crossover_av.append(np.average(crossover_gen))
 
-                n_array.append(gene_s/2)
+                # n_array.append(gene_s/2)
                 std_dev_hillclimber.append(np.std(hillclimber_gen))
                 std_dev_crossover.append(np.std(crossover_gen))
 
+        # # Logarithms
+        # hillclimber_log = np.log(hillclimber_av)
+        # crossover_log = np.log(crossover_av)
+
+        # std_dev_hillclimber_log = np.log(std_dev_hillclimber)
+        # std_dev_crossover_log = np.log(std_dev_crossover_log)
+        n_array = np.arange(20, 20+len(hillclimber_av)*5, 5)
 
         ax0.errorbar(n_array, hillclimber_av, yerr=std_dev_hillclimber, fmt='-o', capsize=5)
         ax0.errorbar(n_array, crossover_av, yerr=std_dev_crossover, fmt='-x', capsize=5)
+
+        # ax1.errorbar(n_array, hillclimber_log, yerr=std_dev_hillclimber_log, fmt='-o', capsize=5)
+        # ax1.errorbar(n_array, crossover_log, yerr=std_dev_crossover_log, fmt='-x', capsize=5)
+
+        plt.show()
+
+def plot_Gen_migration(gene_s):
+        gen_fig = plt.figure()
+        gen_fig.suptitle("GA Performance")
+
+        ax0 = gen_fig.add_subplot(121)
+        ax1 = gen_fig.add_subplot(122)
+
+        ax0.title.set_text("One Point Crossover")
+        ax1.title.set_text("Logarithmic One Point Crossover")
+
+        ax0.set_ylabel('Generations to Peak')
+        ax0.set_xlabel('migration interval')
+
+        ax1.set_ylabel('Logarithmic Generations to Peak')
+        ax1.set_xlabel('migration interval')
+
+        hillclimber_gen = []
+        crossover_gen = []
+
+        hillclimber_av = []
+        crossover_av = []
+
+        hillclimber_log = []
+        crossover_log = []
+
+        n_array = []
+        std_dev_hillclimber = []
+        std_dev_crossover = []
+
+        std_dev_hillclimber_log = []
+        std_dev_crossover_log = []
+
+        for mig_s in range(10, 30, 10):
+
+                hillclimber_gen = []
+                crossover_gen = []
+
+                print("Doing migration interval of ", mig_s)
+                for iteration in range(20):
+
+                        print("         Doing iteration ", iteration)
+
+                        R1 = make_R(gene_s)
+
+                        pop = make_Pop(copy.deepcopy(R1), gene_s, POP_SIZE, DEME_SIZE)
+
+                        # Record all of the GA generation results
+
+                        new_hill_gen = hillclimber_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, 1/gene_s, mig_s)[3]
+                        if (new_hill_gen <= gene_s*15):
+                                hillclimber_gen.append(new_hill_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
+                        new_cross_gen = crossover_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, 1/gene_s, mig_s)[3]
+                        if (new_cross_gen <= gene_s*15):
+                                crossover_gen.append(new_cross_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
+
+                # Get the averages of the GA generation results
+                hillclimber_av.append(np.average(hillclimber_gen))
+                crossover_av.append(np.average(crossover_gen))
+
+                # n_array.append(gene_s/2)
+                std_dev_hillclimber.append(np.std(hillclimber_gen))
+                std_dev_crossover.append(np.std(crossover_gen))
+
+        # # Logarithms
+        # hillclimber_log = np.log(hillclimber_av)
+        # crossover_log = np.log(crossover_av)
+
+        # std_dev_hillclimber_log = np.log(std_dev_hillclimber)
+        # std_dev_crossover_log = np.log(std_dev_crossover_log)
+        n_array = np.arange(10, 10+len(hillclimber_av)*10, 10)
+
+        ax0.errorbar(n_array, hillclimber_av, yerr=std_dev_hillclimber, fmt='-o', capsize=5)
+        ax0.errorbar(n_array, crossover_av, yerr=std_dev_crossover, fmt='-x', capsize=5)
+
+        # ax1.errorbar(n_array, hillclimber_log, yerr=std_dev_hillclimber_log, fmt='-o', capsize=5)
+        # ax1.errorbar(n_array, crossover_log, yerr=std_dev_crossover_log, fmt='-x', capsize=5)
 
         plt.show()
 
@@ -344,7 +493,7 @@ landscape_arr = [X0, Y0, Z0]
 ###############################################################################
 ###     Individuals Part        ###
 
-pop_init = make_Pop(copy.deepcopy(R0), GENE_SIZE)
+pop_init = make_Pop(copy.deepcopy(R0), GENE_SIZE, POP_SIZE, DEME_SIZE)
 population_0 = copy.deepcopy(pop_init)
 population_1 = copy.deepcopy(pop_init)
 
@@ -357,7 +506,11 @@ population_1 = copy.deepcopy(pop_init)
 ###############################################################################
 ###             Hillclimber             ###
 
-def hillclimber_GA(population, ran, gene_size, mut_r):
+def hillclimber_GA(population, ran, gene_size, mut_r, mig_interval):
+
+        # MIGRATION_INTERVAL = 300
+
+        # mut_r = 1/gene_size
 
         fittestX = [[] for aa in range(len(population))]
         fittestY = [[] for bb in range(len(population))]
@@ -366,8 +519,8 @@ def hillclimber_GA(population, ran, gene_size, mut_r):
         fittest_arr = [[],[],[]]
         # print(fittest_arr)
 
-        print(mut_r)
-        print(gene_size)
+        # print(mut_r)
+        # print(gene_size)
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
         fittest_last = [population[i][0] for i in range(len(population))]
 
@@ -377,6 +530,8 @@ def hillclimber_GA(population, ran, gene_size, mut_r):
         done = False
 
         generation_0 = 0
+
+        migrate_count = 0
 
         # MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
         MAX_FITNESS = int(ran[int(gene_size/2), int(gene_size/2)]*(2**(gene_size/2)+2**(gene_size/2)))
@@ -432,17 +587,36 @@ def hillclimber_GA(population, ran, gene_size, mut_r):
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
-                                if ((fittest[p].fit == MAX_FITNESS) or (generation_0 == gene_size*12)):
+                                if ((fittest[p].fit >= MAX_FITNESS) or (generation_0 == gene_size*15)):
                                         done = True
                         else:
                                 if (generation_0 == TEST_GEN_NUM):
                                         done = True
 
-                migrate(target_deme, migrant_indexes, population)
+                migrate(target_deme, migrant_indexes, population, generation_0, mig_interval)
+                # adaptive_migrate(target_deme, migrant_indexes, population, migrate_count, fittestZ, MIGRATION_INTERVAL)
+                migrate_count += 1
+
+                # # Update Migration Interval
+                # if(generation_0 > 5):
+
+                #         for z in range(len(population)):
+                #                 if (fittestZ[z][-1] > fittestZ[z][-2]):
+                #                         # mut_r -= (1/gene_size)/gene_size
+                #                         MIGRATION_INTERVAL += 1
+                #                 else:
+                #                         # mut_r += (1/gene_size)/gene_size
+                #                         MIGRATION_INTERVAL -= 1
+
+                # if (MIGRATION_INTERVAL < 100):
+                #         MIGRATION_INTERVAL = 100
+
+                # if (mut_r > 0.2):
+                #         mut_r = 0.2
 
                 generation_0 += 1
+                # print(generation_0, " MIGRATION_INTERVAL: ", MIGRATION_INTERVAL, "Mutate Rate: ", mut_r)
                 print(generation_0)
-
         fittest_arr = [fittestX, fittestY, fittestZ, generation_0]
 
         print("------   HILLCLIMBER    ------")
@@ -457,7 +631,11 @@ def hillclimber_GA(population, ran, gene_size, mut_r):
 ###############################################################################
 ###             Crossover             ###
 
-def crossover_GA(population, ran, gene_size, mut_r):
+def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
+
+        # MIGRATION_INTERVAL = 300
+
+        # mut_r = 1/gene_size
 
         fittestX = [[] for aa in range(len(population))]
         fittestY = [[] for bb in range(len(population))]
@@ -475,12 +653,14 @@ def crossover_GA(population, ran, gene_size, mut_r):
         target_deme = [l for l in range(len(population))]
         # print(target_deme)
 
-        print(mut_r)
-        print(gene_size)
+        # print(mut_r)
+        # print(gene_size)
 
         done = False
 
         generation_1 = 0
+
+        migrate_count = 0
 
         # MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
         MAX_FITNESS = int(ran[int(gene_size/2), int(gene_size/2)]*(2**(gene_size/2)+2**(gene_size/2)))
@@ -516,7 +696,9 @@ def crossover_GA(population, ran, gene_size, mut_r):
                                                         select = True
 
                                         # Perform crossover on the two parents to generate a child
-                                        child = have_Sex(parent1, parent2, copy.deepcopy(ran), gene_size)
+                                        # child = have_Sex(parent1, parent2, copy.deepcopy(ran), gene_size)#
+                                        # child = pipe(parent1, parent2, copy.deepcopy(ran), gene_size)
+                                        child = bang(parent1, parent2, copy.deepcopy(ran))
 
 
                                         # Mutate the child to create a mutated child to put back into population
@@ -557,17 +739,36 @@ def crossover_GA(population, ran, gene_size, mut_r):
 
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
-                                if ((fittest[p].fit == MAX_FITNESS) or (generation_1 == gene_size*12)):
+                                if ((fittest[p].fit >= MAX_FITNESS) or (generation_1 == gene_size*15)):
                                         done = True
                         else:
                                 if (generation_1 == TEST_GEN_NUM):
                                         done = True
 
+                migrate(target_deme, migrant_indexes, population, generation_1, mig_interval)
 
-                migrate(target_deme, migrant_indexes, population)
+                # adaptive_migrate(target_deme, migrant_indexes, population, migrate_count, fittestZ, MIGRATION_INTERVAL)
+                migrate_count += 1
+
+                # # Update Migration Interval
+                # if(generation_1 > 5):
+                #         for z in range(len(population)):
+                #                 if ((fittestZ[z][-1] > fittestZ[z][-2])):
+                #                         # mut_r -= (1/gene_size)/gene_size
+                #                         MIGRATION_INTERVAL += 1
+                #                 else:
+                #                         # mut_r += (1/gene_size)/gene_size
+                #                         MIGRATION_INTERVAL -= 1
+
+                # if (MIGRATION_INTERVAL < 100):
+                #         MIGRATION_INTERVAL = 100
+
+                # if (mut_r > 0.2):
+                #         mut_r = 0.2
 
                 generation_1 += 1
                 print(generation_1)
+                # print(generation_1, " MIGRATION_INTERVAL: ", MIGRATION_INTERVAL, "Mutate Rate: ", mut_r)
                 # print(population[0][get_Fittest(copy.deepcopy(population[0]))].fit)
                 # print(population[0][migrant_indexes[0]].fit)
                 # for it in range(len(population[0])):
@@ -663,7 +864,8 @@ def do_Crossover():
 
 # do_Hillclimber()
 # do_Crossover()
-plot_Gen()
+# plot_Gen()
+plot_Gen_migration(30)
 
 ###############################################################################
 ###     Plots       ###
