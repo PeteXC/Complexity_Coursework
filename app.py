@@ -5,9 +5,9 @@ import random
 import copy
 
 
-GENE_SIZE = 50
+GENE_SIZE = 40
 POP_SIZE = 400
-DEME_SIZE = int(POP_SIZE/10)
+DEME_SIZE = int(POP_SIZE/20)
 
 MUTATION_RATE = 1/GENE_SIZE
 # MUTATION_RATE = GENE_SIZE/(np.sqrt(GENE_SIZE**2+500)-0.3)
@@ -367,7 +367,7 @@ def plot_Gen():
 
 def plot_Gen_migration(gene_s):
         gen_fig = plt.figure()
-        gen_fig.suptitle("GA Performance")
+        gen_fig.suptitle("GA Performance Varying Migration Intervals")
 
         ax0 = gen_fig.add_subplot(121)
         ax1 = gen_fig.add_subplot(122)
@@ -376,10 +376,10 @@ def plot_Gen_migration(gene_s):
         ax1.title.set_text("Logarithmic One Point Crossover")
 
         ax0.set_ylabel('Generations to Peak')
-        ax0.set_xlabel('migration interval')
+        ax0.set_xlabel('Migration Interval')
 
         ax1.set_ylabel('Logarithmic Generations to Peak')
-        ax1.set_xlabel('migration interval')
+        ax1.set_xlabel('Migration Interval')
 
         hillclimber_gen = []
         crossover_gen = []
@@ -397,7 +397,7 @@ def plot_Gen_migration(gene_s):
         std_dev_hillclimber_log = []
         std_dev_crossover_log = []
 
-        for mig_s in range(10, 30, 10):
+        for mig_s in range(10, 70, 10):
 
                 hillclimber_gen = []
                 crossover_gen = []
@@ -441,6 +441,94 @@ def plot_Gen_migration(gene_s):
         # std_dev_hillclimber_log = np.log(std_dev_hillclimber)
         # std_dev_crossover_log = np.log(std_dev_crossover_log)
         n_array = np.arange(10, 10+len(hillclimber_av)*10, 10)
+
+        ax0.errorbar(n_array, hillclimber_av, yerr=std_dev_hillclimber, fmt='-o', capsize=5)
+        ax0.errorbar(n_array, crossover_av, yerr=std_dev_crossover, fmt='-x', capsize=5)
+
+        # ax1.errorbar(n_array, hillclimber_log, yerr=std_dev_hillclimber_log, fmt='-o', capsize=5)
+        # ax1.errorbar(n_array, crossover_log, yerr=std_dev_crossover_log, fmt='-x', capsize=5)
+
+        plt.show()
+
+def plot_Gen_mutation(gene_s):
+        gen_fig = plt.figure()
+        gen_fig.suptitle("GA Performance Varying Mutation Rates")
+
+        ax0 = gen_fig.add_subplot(121)
+        ax1 = gen_fig.add_subplot(122)
+
+        ax0.title.set_text("Mutation Rates")
+        ax1.title.set_text("Logarithmic One Point Crossover")
+
+        ax0.set_ylabel('Generations to Peak')
+        ax0.set_xlabel('Migration Interval')
+
+        ax1.set_ylabel('Logarithmic Generations to Peak')
+        ax1.set_xlabel('Migration Interval')
+
+        hillclimber_gen = []
+        crossover_gen = []
+
+        hillclimber_av = []
+        crossover_av = []
+
+        hillclimber_log = []
+        crossover_log = []
+
+        n_array = []
+        std_dev_hillclimber = []
+        std_dev_crossover = []
+
+        std_dev_hillclimber_log = []
+        std_dev_crossover_log = []
+
+        for mut_r in range(1, 15+1, 1):
+
+                mut_r = mut_r/100
+
+                hillclimber_gen = []
+                crossover_gen = []
+
+                print("Doing mutation rate of ", mut_r)
+                for iteration in range(10):
+
+                        print("         Doing iteration ", iteration, "for ", mut_r)
+
+                        R1 = make_R(gene_s)
+
+                        pop = make_Pop(copy.deepcopy(R1), gene_s, POP_SIZE, DEME_SIZE)
+
+                        # Record all of the GA generation results
+
+                        new_hill_gen = hillclimber_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, mut_r, 30)[3]
+                        if (new_hill_gen <= gene_s*15):
+                                hillclimber_gen.append(new_hill_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
+                        new_cross_gen = crossover_GA(copy.deepcopy(pop), copy.deepcopy(R1), gene_s, mut_r, 30)[3]
+                        if (new_cross_gen <= gene_s*15):
+                                crossover_gen.append(new_cross_gen)
+                        else:
+                                print("         THROWAWAY", "\n")
+
+
+                # Get the averages of the GA generation results
+                hillclimber_av.append(np.average(hillclimber_gen))
+                crossover_av.append(np.average(crossover_gen))
+
+                # n_array.append(gene_s/2)
+                std_dev_hillclimber.append(np.std(hillclimber_gen))
+                std_dev_crossover.append(np.std(crossover_gen))
+
+        # # Logarithms
+        # hillclimber_log = np.log(hillclimber_av)
+        # crossover_log = np.log(crossover_av)
+
+        # std_dev_hillclimber_log = np.log(std_dev_hillclimber)
+        # std_dev_crossover_log = np.log(std_dev_crossover_log)
+        n_array = np.linspace(0.01, len(hillclimber_av)*0.01, 15)
+        print(n_array)
 
         ax0.errorbar(n_array, hillclimber_av, yerr=std_dev_hillclimber, fmt='-o', capsize=5)
         ax0.errorbar(n_array, crossover_av, yerr=std_dev_crossover, fmt='-x', capsize=5)
@@ -696,9 +784,9 @@ def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
                                                         select = True
 
                                         # Perform crossover on the two parents to generate a child
-                                        # child = have_Sex(parent1, parent2, copy.deepcopy(ran), gene_size)#
+                                        child = have_Sex(parent1, parent2, copy.deepcopy(ran), gene_size)#
                                         # child = pipe(parent1, parent2, copy.deepcopy(ran), gene_size)
-                                        child = bang(parent1, parent2, copy.deepcopy(ran))
+                                        # child = bang(parent1, parent2, copy.deepcopy(ran))
 
 
                                         # Mutate the child to create a mutated child to put back into population
@@ -816,7 +904,7 @@ def do_Hillclimber():
                 plot_Pop(f2_ax0, population_0[0], "Hillclimber (Pre)")
 
         # Do the GA on the population
-        fittest_arr_0 = hillclimber_GA(population_0, copy.deepcopy(R0), GENE_SIZE, MUTATION_RATE)
+        fittest_arr_0 = hillclimber_GA(population_0, copy.deepcopy(R0), GENE_SIZE, MUTATION_RATE, MIGRATION_INTERVAL)
 
         # Plot the post-evolution population sub-figure
         plot_Surface(f2_ax1, copy.deepcopy(landscape_arr))
@@ -849,7 +937,7 @@ def do_Crossover():
         # plot_Pop(f3_ax0, population_1[0], "Crossover (Pre)")
 
         # Do the GA on the population
-        fittest_arr_1 = crossover_GA(population_1, copy.deepcopy(R0), GENE_SIZE, MUTATION_RATE)
+        fittest_arr_1 = crossover_GA(population_1, copy.deepcopy(R0), GENE_SIZE, MUTATION_RATE, MIGRATION_INTERVAL)
 
         # Plot the post-evolution population sub-figure
         plot_Surface(f3_ax1, copy.deepcopy(landscape_arr))
@@ -862,10 +950,11 @@ def do_Crossover():
         for yy in range(len(population_1)):
                 plot_Fittest(f3_ax2, population_1[yy], copy.deepcopy(fittest_arr_1), yy)
 
-# do_Hillclimber()
-# do_Crossover()
+do_Hillclimber()
+do_Crossover()
 # plot_Gen()
-plot_Gen_migration(30)
+# plot_Gen_migration(40)
+# plot_Gen_mutation(40)
 
 ###############################################################################
 ###     Plots       ###
