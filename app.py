@@ -10,15 +10,12 @@ POP_SIZE = 400
 DEME_SIZE = int(POP_SIZE/20)
 
 MUTATION_RATE = 1/GENE_SIZE
-# MUTATION_RATE = GENE_SIZE/(np.sqrt(GENE_SIZE**2+500)-0.3)
 
 MIGRATION_RATE = 1/50
 MIGRATION_INTERVAL = 30
 
 STOP_GEN_NUM = 1000
 TEST_GEN_NUM = 400
-
-# np.random.seed(0)
 
 m = ['FPTP', 'POP']
 mode = m[0]
@@ -94,13 +91,11 @@ def get_Fittest(pop):
         for x in range(len(pop)):
                 list[x] = copy.copy(pop[x].fit)
         return list.index(max(list))
-        # return [i for i, j in enumerate(list) if j == max(list)]
 
 def mutate(par, R, mut_r):
         child = copy.deepcopy(par)
         for i in range(len(par.G)):
                 if (random.random() <= (mut_r)):
-                        # child.G[i] = random.randint(0,1)
                         if (child.G[i] == 1):
                                 child.G[i] = 0
                         else:
@@ -157,16 +152,10 @@ def make_Pop(ran, gene_size, pop_size, deme_size):
         return [make_Deme(copy.deepcopy(ran), gene_size, deme_size) for i in range(int(pop_size/deme_size))]
 
 def make_R(gene_size):
-        # R0 = np.random.rand(int((gene_size/2)+1), int((gene_size/2)+1))
-        # for n in range(len(R0)):
-        #         for m in range(len(R0)):
-        #                 R0[m,n] = (R0[m,n]+1)/2
-        # print(len(R0), len(R0[0]))
         x0 = np.arange(0, (gene_size/2)+1, 1)
         y0 = np.arange(0, (gene_size/2)+1, 1)
         Y0, X0 = np.meshgrid(x0, y0)
 
-        # r0 = [random.uniform(0.5,1) for i in Y0]
         R0 = np.random.rand(len(X0),len(X0))
         for n in range(len(X0)):
                 for m in range(len(X0)):
@@ -197,15 +186,9 @@ def migrate(target_deme, migrant_indexes, population, n, mig_interval):
                 migrant_Arr = []
                 for ip in range(len(population)):
                         migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
-                        # print(migrant_Arr[ip].fit)
-                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
-
-                # print(migrant_Arr[0].fit)
-                # print(population[0][migrant_indexes[0]].fit, "\n")
 
                 # Migrate the migrants to their new demes
                 for r in range(len(population)):
-                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
                         population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
 
 def adaptive_migrate(target_deme, migrant_indexes, population, n, fittestZ, MI):
@@ -232,15 +215,9 @@ def adaptive_migrate(target_deme, migrant_indexes, population, n, fittestZ, MI):
                 migrant_Arr = []
                 for ip in range(len(population)):
                         migrant_Arr.append(copy.deepcopy(population[ip][migrant_indexes[ip]]))
-                        # print(migrant_Arr[ip].fit)
-                        # print(population[ip][migrant_indexes[ip]].fit, "\n")
-
-                # print(migrant_Arr[0].fit)
-                # print(population[0][migrant_indexes[0]].fit, "\n")
 
                 # Migrate the migrants to their new demes
                 for r in range(len(population)):
-                        # population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(population[r][migrant_indexes[r]])
                         population[target_deme[r]][migrant_indexes[target_deme[r]]] = copy.deepcopy(migrant_Arr[r])
 
 
@@ -256,10 +233,6 @@ def plot_Pop(ax, pop, text):
         Y = [Individual.j for Individual in pop]
         Z = [Individual.fit for Individual in pop]
 
-        # f_Z0 = np.multiply(copy.deepcopy(z0), copy.deepcopy(R0))
-
-        # ax.view_init(azim=-130)
-        # ax.plot_surface(arr[0], arr[1], arr[2], cmap='copper', alpha=0.7)
         ax.title.set_text(text)
 
         ax.scatter(X, Y, Z, marker='*')
@@ -272,7 +245,6 @@ def plot_Fittest(ax, pop, arr, deme_num):
 
         ax.title.set_text("Fittest Tracker")
 
-        # for i in range(len(pop)):
         ax.scatter(arr[0][deme_num], arr[1][deme_num], arr[2][deme_num], marker='*')
 
         return 0
@@ -596,19 +568,12 @@ population_1 = copy.deepcopy(pop_init)
 
 def hillclimber_GA(population, ran, gene_size, mut_r, mig_interval):
 
-        # MIGRATION_INTERVAL = 300
-
-        # mut_r = 1/gene_size
-
         fittestX = [[] for aa in range(len(population))]
         fittestY = [[] for bb in range(len(population))]
         fittestZ = [[] for cc in range(len(population))]
         fittest_XYZ = [[], [], []]
         fittest_arr = [[],[],[]]
-        # print(fittest_arr)
 
-        # print(mut_r)
-        # print(gene_size)
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
         fittest_last = [population[i][0] for i in range(len(population))]
 
@@ -621,7 +586,6 @@ def hillclimber_GA(population, ran, gene_size, mut_r, mig_interval):
 
         migrate_count = 0
 
-        # MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
         MAX_FITNESS = int(ran[int(gene_size/2), int(gene_size/2)]*(2**(gene_size/2)+2**(gene_size/2)))
 
         while not(done):
@@ -639,12 +603,7 @@ def hillclimber_GA(population, ran, gene_size, mut_r, mig_interval):
                                         parent = fitness_Proportionate_Selection(population[p])
                                         # Mutate the parent to create a child and recalculate child values
                                         child = mutate(copy.deepcopy(parent), copy.deepcopy(ran), mut_r)
-                                        # if (child.G == parent.G).all():
-                                        #         print("SAME")
-                                        # else:
-                                        #         print("DIFFERENT")
-                                        # Always put the child back into the population, regardless if it's fitter or not
-                                        # if (child.fit > parent.fit):
+
                                         temp_population[p][q] = copy.deepcopy(child)
 
 
@@ -721,10 +680,6 @@ def hillclimber_GA(population, ran, gene_size, mut_r, mig_interval):
 
 def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
 
-        # MIGRATION_INTERVAL = 300
-
-        # mut_r = 1/gene_size
-
         fittestX = [[] for aa in range(len(population))]
         fittestY = [[] for bb in range(len(population))]
         fittestZ = [[] for cc in range(len(population))]
@@ -735,14 +690,8 @@ def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
         fittest = [population[i][get_Fittest(population[i])] for i in range(len(population))]
         fittest_last = [population[i][0] for i in range(len(population))]
 
-        # (print(fittest_last[bb].fit, fittest[bb].fit) for bb in range(len(population)))
-
         migrant_indexes = [0 for l in range(len(population))]
         target_deme = [l for l in range(len(population))]
-        # print(target_deme)
-
-        # print(mut_r)
-        # print(gene_size)
 
         done = False
 
@@ -750,16 +699,11 @@ def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
 
         migrate_count = 0
 
-        # MAX_FITNESS = int(max(map(max, copy.deepcopy(Z0))))
         MAX_FITNESS = int(ran[int(gene_size/2), int(gene_size/2)]*(2**(gene_size/2)+2**(gene_size/2)))
 
         while not(done):
 
                 temp_population = copy.deepcopy(population)
-
-                # for it in range(len(population[0])):
-                #         print(population[0][it].fit, end=', ')
-                # print("\n")
 
                 for p in range(len(population)):
 
@@ -822,9 +766,6 @@ def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
                                 else:
                                         migrant_Chosen = False
 
-                                # print(population[p][migrant_indexes[p]].fit)
-                                # print(fittest[p].fit, "\n")
-
                         # Check if the population has found an individual which has a high enough fitness to consider complete
                         if (mode == 'FPTP'):
                                 if ((fittest[p].fit >= MAX_FITNESS) or (generation_1 == gene_size*15)):
@@ -857,14 +798,6 @@ def crossover_GA(population, ran, gene_size, mut_r, mig_interval):
                 generation_1 += 1
                 print(generation_1)
                 # print(generation_1, " MIGRATION_INTERVAL: ", MIGRATION_INTERVAL, "Mutate Rate: ", mut_r)
-                # print(population[0][get_Fittest(copy.deepcopy(population[0]))].fit)
-                # print(population[0][migrant_indexes[0]].fit)
-                # for it in range(len(population[0])):
-                #         print(population[0][it].fit, end = ', ')
-                # print("\n\n")
-                # print(population[0][migrant_indexes[0]].fit)
-                # print(migrant_Arr[0].fit)
-                # print(population[target_deme[0]][migrant_indexes[target_deme[0]]].fit, "\n\n")
 
         fittest_arr = [fittestX, fittestY, fittestZ, generation_1]
 
